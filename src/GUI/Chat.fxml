@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="500.0" stylesheets="@Chat.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.ChatController">
+   <children>
+      <VBox prefHeight="600.0" prefWidth="500.0" spacing="0.0">
+         <children>
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #00796B; -fx-padding: 10;">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" />
+                  <Label fx:id="lblChatWith" text="Chat với: " textFill="WHITE">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER_RIGHT" prefWidth="200.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Button fx:id="btnSendChallenge" mnemonicParsing="false" onAction="#handleSendChallenge" style="-fx-background-color: #FF5722;" text="Gửi lời mời đấu" textFill="WHITE">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+
+            <!-- Opponent Info -->
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="15.0" style="-fx-background-color: #E0F2F1; -fx-padding: 10;">
+               <children>
+                  <Label fx:id="lblOpponentStatus" text="Trạng thái: Rảnh" textFill="#00796B">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblOpponentPoints" text="Điểm: 0" textFill="#424242">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <!-- Chat Messages Area -->
+            <ScrollPane fitToWidth="true" prefHeight="450.0" prefWidth="500.0" style="-fx-background-color: white;" VBox.vgrow="ALWAYS">
+               <content>
+                  <VBox fx:id="vboxMessages" prefWidth="480.0" spacing="10.0" style="-fx-background-color: white;">
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+               </content>
+            </ScrollPane>
+
+            <!-- Message Input Area -->
+            <HBox alignment="CENTER" prefHeight="60.0" spacing="10.0" style="-fx-background-color: #F5F5F5; -fx-padding: 10;">
+               <children>
+                  <TextField fx:id="txtMessage" onAction="#handleSendMessage" prefHeight="40.0" promptText="Nhập tin nhắn..." HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </TextField>
+                  <Button mnemonicParsing="false" onAction="#handleSendMessage" prefHeight="40.0" prefWidth="80.0" text="Gửi">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

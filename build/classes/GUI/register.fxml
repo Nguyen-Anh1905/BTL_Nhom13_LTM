@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" stylesheets="@register.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.RegisterController">
+   <children>
+      <VBox layoutX="100.0" layoutY="50.0" prefHeight="300.0" prefWidth="400.0">
+         <children>
+            <Label text="Họ Và Tên" />
+            <TextField fx:id="txtFullName" />
+
+            <Label text="Tên Đăng Nhập" />
+            <TextField fx:id="txtUsername" />
+
+            <Label text="Mật khẩu" />
+            <PasswordField fx:id="txtPassword" />
+
+            <Label text="Nhập Lại Mật Khẩu" />
+            <PasswordField fx:id="txtConfirmPassword" />
+
+            <Label fx:id="lblMessage" text="" style="-fx-text-fill: red;" />
+
+            <HBox prefHeight="28.0" prefWidth="400.0">
+               <children>
+                  <Button fx:id="btnRegister" text="Đăng Ký" onAction="#handleRegister" />
+                  <Hyperlink text="Đăng Nhập Ngay" onAction="#handleBackToLogin" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

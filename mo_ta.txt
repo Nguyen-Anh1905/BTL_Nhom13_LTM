@@ -1,0 +1,53 @@
+Hệ thống có một server và nhiều client. Server sẽ quản lý toàn bộ thông tin, dữ liệu và là trọng
+tài chính.
+- Để chơi, người chơi phải login vào tài khoản từ một máy client. Server thực hiện công việc
+check những request được gửi từ clients. Trong trường hợp này là check request xem người
+dùng này có hợp lệ không, xem thông tin người dùng này có nằm trong cơ sở dữ liệu hay
+không? Nếu có thì trả về true, không thì trả về false.
+- Sau khi login thành công, client gửi request lên server để server liệt kê các user, sau khi được
+server phản hồi data về client, client hiển thị danh sách người chơi đang online, với thông tin:
+tên, tổng số điểm hiện có, trạng thái (đang chơi, offline hoặc rảnh). Bên cạnh tên của các người
+có chức năng nhắn tin. Khi chọn chức năng nay, server tạo phòng chat cho 2 client. 2 clients
+có thể chat hoặc gửi lời mời đấu.
+- Người chơi chỉ có thể chọn đối thủ đang rảnh trong danh sách để gửi lời mời thách đấu. Client
+tiếp tục gửi request để chơi cùng người chơi trong danh sách, server gửi thông tin thách đấu
+đến người chơi (client) khác.
+- Khi nhận được lời mời, lời mời sẽ có 1 thời hạn nhất định, đối thủ có thể chấp nhận lời mời
+(OK) hoặc là từ chối (Reject).
++ Nếu người chơi chọn Reject hoặc trôi qua hết 1 khoảng thời gian chờ, server gửi thông báo
+về cho người thách đấu ghép trận không thành công, hệ thống hiển thị lại giao diện sảnh.
++ Khi cả hai đồng ý, server sẽ lập tức tạo phòng đấu:
+- Một trận đấu bao gồm 3 vòng (ván) đấu, mỗi vòng được tổ chức như sau:
++ Server sẽ gửi tập hợp chữ cái ban đầu. Sẽ có những chữ cái có sẵn dấu.
+Ví dụ: Á, B, Đ, G, N, Ó, Ồ, C, H.
++ Vòng đấu diễn ra trong một khoảng gian giới hạn (1 phút), hệ thống hiện ra một số
+ô trống quy định, nhiệm vụ của người chơi là nhấn hoặc kéo thả những chữ cái vào ô
+trống để tạo nên càng nhiều từ có nghĩa (hợp lệ) càng tốt. Người chơi chỉ được nhập
+những từ có số chữ cái bằng với số chữ quy định từ trước.
++ Mỗi từ sẽ được gửi lên server, và đối chiếu với những từ trong từ điển đã được soạn
+sẵn trong cơ sở dữ liệu.
++ Server tính điểm: Sau ván đấu, người chơi nào ghép được nhiều từ hơn thì thắng ván
+đấu đó và được 1 điểm. Nếu hòa thì mỗi người được cộng 1 điểm.
+
++ Trong lúc chơi, người chơi có thể xem được số điểm đang có của đối thủ trong vòng
+đó.
++ Trong thời gian chơi người dùng có thể thả các biểu tượng cảm xúc như thích, trái
+tim, dislike, bất ngờ.
++ Trong khoảng thời gian trận đấu diễn ra, có option thoát khỏi phòng. Nếu 1 client
+thoát khỏi phòng trong khoảng thời gian trận đấu diễn ra, server sẽ tính thắng cho
+người chơi còn lại.
++ Sau khi kết thúc mỗi vòng đấu, hệ thống hiển thị kết quả trận đấu đó và những từ đã
+ghép đúng của đối thủ.
+
+- Khi hết ván đấu, server so sánh tổng số điểm giữa 2 người chơi → Người có nhiều điểm hơn
+thắng. Server gửi thông báo kết quả trận đấu cho 2 client, 2 client hiển thị kết quả. Nếu cả 2
+người chơi bằng điểm, server thông báo kết quả hòa. Server lưu dữ liệu vào cơ sở dữ liệu: số
+trận thắng, tổng điểm. Người chơi thắng được cộng 2 điểm xếp hạng, người chơi hòa được
+cộng 1 điểm xếp hạng, thua không được cộng điểm.
+- Sau khi kết thúc ván đấu thứ 2, người chơi nào thắng liên tiếp 2 ván đấu thì trận đấu kết thúc.
+Người chơi đó trở thành người chiến thắng của trận đấu.
+- Sau khi kết thúc mỗi trận, cả 2 clients đều có option chơi lại, nếu cả 2 đều chọn thì server tạo
+phòng đấu mới. Nếu 1 client chọn đấu lại, nhưng client còn lại không chọn, client nhận được
+thông báo đối thủ từ chối chơi lại.
+- Người chơi có thể xem bảng xếp hạng toàn hệ thống theo: tổng số điểm (giảm dần) hoặc là
+tổng số trận thắng (giảm dần).
