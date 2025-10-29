@@ -14,11 +14,10 @@ public class Main extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/GUI/login.fxml"));
-        Scene scene = new Scene(root);
-        stage.setTitle("Đăng Nhập");
-        stage.setScene(scene);
-        stage.show();
+        MessageHandler handler = new MessageHandler();
+        Client client = new Client("localhost", 9999, handler);
+        handler.setClient(client); 
+        client.showLoginUI(stage);
     }
 
     public static void main(String[] args) {

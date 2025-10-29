@@ -1,9 +1,15 @@
   
 package Client;
 
+import model.*;
 import common.*;
 import java.io.*;
 import java.net.*;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.Parent;
+import javafx.fxml.FXMLLoader;
+import java.util.List;
 
 public class Client {
     private Socket socket;
@@ -26,9 +32,11 @@ public class Client {
             while (true) {
                 Message msg = (Message) in.readObject();
                 handler.handleMessage(msg);
+                System.out.println("Received message: " + msg.getType() + " - " + msg.getContent());
             }
         } catch (Exception e) {
             System.out.println("🔌 Mất kết nối với server.");
+            e.printStackTrace(); 
         }
     }
 
@@ -42,23 +50,59 @@ public class Client {
     }
 
 
-    public void showLobbyUI(Stage stage, model.Users user, List<model.Users> onlinePlayers) {
+    public void showLobbyUI(Stage stage, model.Users user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Lobby.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/Lobby.fxml"));
             Parent root = loader.load();
 
             LobbyController lobbyController = loader.getController();
             lobbyController.setClient(this);
             lobbyController.setCurrentUser(user);
-            lobbyController.setPlayerList(onlinePlayers);
 
             Scene scene = new Scene(root);
             stage.setScene(scene);
-            stage.setTitle("Lobby - Chào mừng " + user.getFullname());
+            stage.setTitle("Lobby - Chào mừng " + user.getFullName());
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    public void showLoginUI(Stage stage) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/login.fxml"));
+            Parent root = loader.load();
+            LoginController loginController = loader.getController();
+            loginController.setClient(this);
+            handler.setLoginController(loginController);
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Đăng Nhập");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void showRegisterUI(Stage stage) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/register.fxml"));
+            Parent root = loader.load();
+            RegisterController registerController = loader.getController();
+            registerController.setClient(this);
+            handler.setRegisterController(registerController);
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Đăng Ký");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
 }
 

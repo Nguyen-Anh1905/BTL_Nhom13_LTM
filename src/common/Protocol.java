@@ -7,8 +7,8 @@ public class Protocol {
     public static final String LOGOUT = "logout";  // ← THÊM MỚI
     
     // Server → Client
-    public static final String LOGIN_SUCCESS = "login_success";
-    public static final String LOGIN_FAILURE = "login_failure";
-    public static final String REGISTER_SUCCESS = "register_success";  // ← THÊM MỚI
-    public static final String REGISTER_FAILURE = "register_failure";  // ← THÊM MỚI
+    public static final String LOGIN_SUCCESS = "login success";
+    public static final String LOGIN_FAILURE = "login failure";
+    public static final String REGISTER_SUCCESS = "register success";  // ← THÊM MỚI
+    public static final String REGISTER_FAILURE = "register failure";  // ← THÊM MỚI
 }

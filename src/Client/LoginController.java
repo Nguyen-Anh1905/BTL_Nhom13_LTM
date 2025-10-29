@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.event.ActionEvent;
 import javafx.stage.Stage;
 import common.*;
+import model.*;
 import javafx.application.Platform;
 
 
@@ -30,6 +31,13 @@ public class LoginController implements Initializable {
     private Label lblMessage;
     @FXML
     private Button btnLogin;
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+    public Scene getScene() {
+        return txtUsername.getScene();
+    }
 
     @FXML
     private void handleLogin(ActionEvent event){
@@ -63,63 +71,32 @@ public class LoginController implements Initializable {
         client.sendMessage(new Message(Protocol.LOGIN, data));
     }
     
-    private void handleServerResponse(Message msg) {
-        switch (msg.getType()) {
-            case Protocol.LOGIN_SUCCESS:
-                // Nhận object Users từ Server
-                model.Users user = (model.Users) msg.getContent();
-                
-                lblMessage.setText("✅ Xin chào, " + user.getUsername());
-                lblMessage.setStyle("-fx-text-fill: green;");
-                
-                break;
-                
-            case Protocol.LOGIN_FAILURE:
-                lblMessage.setText("❌ " + msg.getContent());
-                lblMessage.setStyle("-fx-text-fill: red;");
-                break;
-        }
+    public void handleServerResponse(Message msg) {
+        Platform.runLater(() -> {
+            switch (msg.getType()) {
+                case Protocol.LOGIN_SUCCESS:
+                    Users user = (Users) msg.getContent();
+                    lblMessage.setText("Xin chào, " + user.getUsername());
+                    lblMessage.setStyle("-fx-text-fill: green;");
+                    break;
+                case Protocol.LOGIN_FAILURE:
+                    lblMessage.setText(msg.getContent().toString());
+                    lblMessage.setStyle("-fx-text-fill: red;");
+                    break;
+            }
+        });
     }
     
     @FXML
     private void handleBackToRegister(ActionEvent event) {
-        try {
-            // Lấy Stage hiện tại
-            Stage stage = (Stage) txtUsername.getScene().getWindow();
-            
-            // Load file register.fxml
-            Parent root = FXMLLoader.load(getClass().getResource("/GUI/register.fxml"));
-            
-            // Tạo Scene mới
-            Scene scene = new Scene(root);
-            
-            // Đổi scene
-            stage.setScene(scene);
-            stage.setTitle("Đăng Ký");
-            stage.show();
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            lblMessage.setText("❌ Lỗi khi chuyển trang!");
-            lblMessage.setStyle("-fx-text-fill: red;");
-        }
+        Platform.runLater(() -> {
+            client.showRegisterUI((Stage) txtUsername.getScene().getWindow());
+        });
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        try{
-            MessageHandler handler = new MessageHandler(msg -> {
-                Platform.runLater(() -> {
-                    handleServerResponse(msg);
-                });
-            });
-            // Kết nối tới server
-            client = new Client("localhost", 9999, handler);
-        }catch(Exception e){
-            e.printStackTrace();
-            lblMessage.setText("❌ Không thể kết nối tới server!");
-            lblMessage.setStyle("-fx-text-fill: red;");
-        }
+        
     }    
     
 }

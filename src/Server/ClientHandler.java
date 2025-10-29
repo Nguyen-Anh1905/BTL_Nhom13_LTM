@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import DAO.*;
+import model.*;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -57,18 +58,16 @@ public class ClientHandler implements Runnable {
                 String password = parts[1];
 
                 // Lấy user từ database
-                model.Users user = userDAO.getUserByUsername(username);
+                Users user = userDAO.getUserByUsername(username);
+                
                 
                 // Kiểm tra user tồn tại và mật khẩu đúng
                 if (user != null && user.getPassword().equals(password)) {
-                    // ✅ ĐĂNG NHẬP THÀNH CÔNG
-                    
+                    // ✅ ĐĂNG NHẬP THÀNH CÔNG                  
                     // Cập nhật trạng thái thành "online"
                     userDAO.updateUserStatus(username, "online");
-                    
                     // Lấy lại thông tin user đã cập nhật
                     user = userDAO.getUserByUsername(username);
-                    
                     System.out.println("✅ " + username + " đăng nhập thành công!");
                     
                     // GỬI OBJECT USER về Client

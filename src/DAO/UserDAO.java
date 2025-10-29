@@ -4,8 +4,10 @@ package DAO;
 import model.Users;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.*;
 
 public class UserDAO {
+    
     
     // Thông tin kết nối database
     private static final String URL = "jdbc:mysql://localhost:3306/gamevtv";
@@ -65,8 +67,7 @@ public class UserDAO {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             
-            if (rs.next()) {
-                
+            if (rs.next()) {               
                 
                 Users user = new Users();
                 user.setUserId(rs.getInt("user_id"));
@@ -78,25 +79,20 @@ public class UserDAO {
                 user.setTotalWins(rs.getInt("total_wins"));
                 user.setTotalDraws(rs.getInt("total_draws"));
                 user.setTotalLosses(rs.getInt("total_losses"));
-                
                 // Chuyển đổi Timestamp sang LocalDateTime (kiểm tra null)
                 Timestamp createdAt = rs.getTimestamp("created_at");
                 if (createdAt != null) {
                     user.setCreatedAt(createdAt.toLocalDateTime());
                 }
-                
                 Timestamp updatedAt = rs.getTimestamp("updated_at");
                 if (updatedAt != null) {
                     user.setUpdatedAt(updatedAt.toLocalDateTime());
                 }
-                
                 return user;
-            }
-            
+            }  
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-        
+        }        
         return null; // Không tìm thấy user
     }
     
@@ -118,4 +114,77 @@ public class UserDAO {
             return false;
         }
     }
+    // Lấy danh sách người chơi online từ view online_players
+    public List<Users> getOnlinePlayersFromView() {
+        List<Users> onlinePlayers = new ArrayList<>();
+        String sql = "SELECT * FROM online_players";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullName(rs.getString("full_name"));
+                user.setStatus(rs.getString("status"));
+                user.setTotalPoints(rs.getInt("total_points"));
+                user.setTotalWins(rs.getInt("total_wins"));
+                user.setTotalDraws(rs.getInt("total_draws"));
+                user.setTotalLosses(rs.getInt("total_losses"));
+                onlinePlayers.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return onlinePlayers;
+    }
+    // Lấy bảng xếp hạng theo điểm
+    public List<Users> getLeaderboardByPoints() {
+        List<Users> leaderboard = new ArrayList<>();
+        String sql = "SELECT * FROM leaderboard_by_points";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullName(rs.getString("full_name"));
+                user.setTotalPoints(rs.getInt("total_points"));
+                user.setTotalWins(rs.getInt("total_wins"));
+                user.setTotalDraws(rs.getInt("total_draws"));
+                user.setTotalLosses(rs.getInt("total_losses"));
+                leaderboard.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return leaderboard;
+    }
+
+    // Lấy bảng xếp hạng theo số trận thắng
+    public List<Users> getLeaderboardByWins() {
+        List<Users> leaderboard = new ArrayList<>();
+        String sql = "SELECT * FROM leaderboard_by_wins";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullName(rs.getString("full_name"));
+                user.setTotalWins(rs.getInt("total_wins"));
+                user.setTotalPoints(rs.getInt("total_points"));
+                user.setTotalDraws(rs.getInt("total_draws"));
+                user.setTotalLosses(rs.getInt("total_losses"));
+                leaderboard.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return leaderboard;
+    }
+
+
 }

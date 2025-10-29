@@ -15,6 +15,7 @@ import javafx.scene.Parent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import java.io.IOException;
+import java.util.List;
 
 public class LobbyController implements Initializable {
     
@@ -74,7 +75,7 @@ public class LobbyController implements Initializable {
     private void handleLogout(ActionEvent event) {
         System.out.println("Đăng xuất");
     // Gửi message LOGOUT lên server
-    client.sendMessage(new common.Message(common.Protocol.logout, currentUser.getUsername()));
+    client.sendMessage(new common.Message(common.Protocol.LOGOUT, currentUser.getUsername()));
 
     // Đóng socket client (nếu muốn)
     // client.close(); // Nếu có method close()
@@ -95,5 +96,13 @@ public class LobbyController implements Initializable {
     // Method để nhận client từ LoginController/RegisterController
     public void setClient(Client client) {
         this.client = client;
+    }
+
+    public void setPlayerList(List<Users> onlinePlayers) {
+        if (onlinePlayers == null) {
+            tblPlayers.getItems().clear(); // hoặc setAll(Collections.emptyList());
+        } else {
+            tblPlayers.getItems().setAll(onlinePlayers);
+        }
     }
 }
