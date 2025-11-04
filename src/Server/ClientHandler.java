@@ -4,8 +4,8 @@ import common.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import DAO.*;
-import model.*;
+import Server.DAO.*;
+import Server.model.*;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
             // Nếu đã biết username, cập nhật status về offline
             if (username != null) {
                 userDAO.updateUserStatus(username, "offline");
-                System.out.println("⚠️ Đã cập nhật " + username + " về offline do mất kết nối.");
+                System.out.println("Đã cập nhật " + username + " về offline do mất kết nối.");
             }
         }
     }
@@ -78,8 +78,7 @@ public class ClientHandler implements Runnable {
                     out.writeObject(new Message(Protocol.LOGIN_FAILURE, "Sai tên hoặc mật khẩu!"));
                 }
                 out.flush();
-                break;
-            
+                break;            
             case Protocol.REGISTER:  // ← THÊM case mới
                 // Parse dữ liệu: "fullName:username:password"
                 String[] regData = ((String) msg.getContent()).split(":");
@@ -93,7 +92,7 @@ public class ClientHandler implements Runnable {
                     out.writeObject(new Message(Protocol.REGISTER_FAILURE, "Username đã tồn tại!"));
                 } else {
                     // Tạo user mới
-                    model.Users newUser = new model.Users(regUsername, regPassword, fullName);
+                    Users newUser = new Users(regUsername, regPassword, fullName);
                     
                     // Lưu vào database
                     boolean success = userDAO.insertUser(newUser);
@@ -105,7 +104,7 @@ public class ClientHandler implements Runnable {
                         userDAO.updateUserStatus(regUsername, "online");
                         
                         // Lấy thông tin user vừa tạo
-                        model.Users registeredUser = userDAO.getUserByUsername(regUsername);
+                        Users registeredUser = userDAO.getUserByUsername(regUsername);
                         
                         System.out.println("✅ Đăng ký thành công: " + regUsername);
                         

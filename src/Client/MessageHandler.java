@@ -1,8 +1,9 @@
 package Client;
 
+import Client.controller.*;
 import common.*;
 import javafx.application.Platform;
-import model.*;
+import Server.model.*;
 import javafx.stage.Stage;
 
 public class MessageHandler {
@@ -35,7 +36,7 @@ public class MessageHandler {
         switch (msg.getType()) {
             case Protocol.LOGIN_SUCCESS:
                 if (loginController != null) {
-                    Users user = (model.Users) msg.getContent();
+                    Users user = (Users) msg.getContent();
                     loginController.handleServerResponse(msg);
                     Platform.runLater(() -> {
                         client.showLobbyUI((Stage) loginController.getScene().getWindow(), user);
@@ -49,7 +50,7 @@ public class MessageHandler {
                 break;
             case Protocol.REGISTER_SUCCESS:
                 if (registerController != null) {
-                    Users user = (model.Users) msg.getContent();
+                    Users user = (Users) msg.getContent();
                     registerController.handleServerResponse(msg);
                     Platform.runLater(() -> {
                         client.showLobbyUI((Stage) registerController.getScene().getWindow(), user);

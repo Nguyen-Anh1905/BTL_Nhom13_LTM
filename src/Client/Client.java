@@ -1,7 +1,8 @@
   
 package Client;
 
-import model.*;
+import Client.controller.*;
+import Server.model.*;
 import common.*;
 import java.io.*;
 import java.net.*;
@@ -50,9 +51,9 @@ public class Client {
     }
 
 
-    public void showLobbyUI(Stage stage, model.Users user) {
+    public void showLobbyUI(Stage stage, Server.model.Users user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/Lobby.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/Lobby.fxml"));
             Parent root = loader.load();
 
             LobbyController lobbyController = loader.getController();
@@ -69,7 +70,7 @@ public class Client {
     }
     public void showLoginUI(Stage stage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/login.fxml"));
             Parent root = loader.load();
             LoginController loginController = loader.getController();
             loginController.setClient(this);
@@ -85,7 +86,7 @@ public class Client {
     }
     public void showRegisterUI(Stage stage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/register.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/register.fxml"));
             Parent root = loader.load();
             RegisterController registerController = loader.getController();
             registerController.setClient(this);
