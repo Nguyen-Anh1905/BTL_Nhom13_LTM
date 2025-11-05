@@ -67,6 +67,7 @@ public class Client {
             LobbyController lobbyController = loader.getController();
             lobbyController.setClient(this);
             lobbyController.setCurrentUser(user);
+            handler.setLobbyController(lobbyController);  // ← THÊM DÒNG NÀY
 
             Scene scene = new Scene(root);
             stage.setScene(scene);

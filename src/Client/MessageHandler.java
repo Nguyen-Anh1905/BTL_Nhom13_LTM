@@ -29,6 +29,9 @@ public class MessageHandler {
     public void setRegisterController(RegisterController registerController) {
         this.registerController = registerController;
     }
+        public void setLobbyController(LobbyController lobbyController) {
+        this.lobbyController = lobbyController;
+    }
 
     public void handleMessage(Message msg) {
         System.out.println("Received message: " + msg.getType() + " - " + msg.getContent());
@@ -42,6 +45,9 @@ public class MessageHandler {
                     loginController.handleServerResponse(msg);
                     Platform.runLater(() -> {
                         client.showLobbyUI((Stage) loginController.getScene().getWindow(), user);
+                        // SAU KHI CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
+                        System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
+                        client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                     });
                 }
                 break;
@@ -56,6 +62,9 @@ public class MessageHandler {
                     registerController.handleServerResponse(msg);
                     Platform.runLater(() -> {
                         client.showLobbyUI((Stage) registerController.getScene().getWindow(), user);
+                        // SAU KHI ĐĂNG KÝ VÀ CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
+                        System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
+                        client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                     });
                 }
                 break;
@@ -65,9 +74,19 @@ public class MessageHandler {
                 }
                 break;
             case Protocol.PLAYER_LIST:
+                System.out.println("Nhận được PLAYER_LIST");
+                System.out.println("lobbyController = " + lobbyController);
                 if (lobbyController != null) {
                     List<Users> onlinePlayers = (List<Users>) msg.getContent();
-                    lobbyController.updatePlayerList(onlinePlayers);
+                    for (Users u : onlinePlayers) {
+                        System.out.println(" - " + u.getUsername() + " (" + u.getStatus() + ")");
+                    }
+                    System.out.println("Số người chơi: " + (onlinePlayers != null ? onlinePlayers.size() : 0));
+                    Platform.runLater(() -> {
+                        lobbyController.updatePlayerList(onlinePlayers);
+                    });
+                } else {
+                    System.out.println("lobbyController is NULL!");
                 }
                 break;
             // Xử lý các loại message khác nếu cần
@@ -78,5 +97,7 @@ public class MessageHandler {
                 
         }
     }
+    
+
 }
 

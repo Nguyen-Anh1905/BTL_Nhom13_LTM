@@ -7,6 +7,8 @@ import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.event.ActionEvent;
@@ -34,9 +36,21 @@ public class LobbyController implements Initializable {
     @FXML
     private Label lblOnlineCount;  // "Online: X người chơi"
     
-    // Tab 1: Người chơi Online
+    // Tab 1: Người chơi Online - TableView và các Columns
     @FXML
     private TableView<Users> tblPlayers;
+    @FXML
+    private TableColumn<Users, String> colUsername;
+    @FXML
+    private TableColumn<Users, Integer> colTotalPoints;
+    @FXML
+    private TableColumn<Users, Integer> colWins;
+    @FXML
+    private TableColumn<Users, Integer> colDraws;
+    @FXML
+    private TableColumn<Users, Integer> colLosses;
+    @FXML
+    private TableColumn<Users, String> colStatus;
     
     // Tab 2: Lịch sử đấu
     @FXML
@@ -52,7 +66,17 @@ public class LobbyController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        System.out.println("✅ Lobby Controller đã khởi tạo!");
+        System.out.println("Lobby Controller đã khởi tạo!");
+        
+        // Set up cell value factories cho TableView người chơi
+        colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colTotalPoints.setCellValueFactory(new PropertyValueFactory<>("totalPoints"));
+        colWins.setCellValueFactory(new PropertyValueFactory<>("totalWins"));
+        colDraws.setCellValueFactory(new PropertyValueFactory<>("totalDraws"));
+        colLosses.setCellValueFactory(new PropertyValueFactory<>("totalLosses"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        
+        System.out.println("TableView columns đã được setup!");
     }
     
     // Nhận thông tin user từ LoginController/RegisterController
@@ -84,7 +108,7 @@ public class LobbyController implements Initializable {
     
     @FXML
     private void handleViewLeaderboard(ActionEvent event) {
-        System.out.println("🏆 Xem bảng xếp hạng");
+        System.out.println("Xem bảng xếp hạng");
         // TODO: Chuyển sang màn hình Leaderboard
     }
     
@@ -104,19 +128,9 @@ public class LobbyController implements Initializable {
             Client newClient = new Client("localhost", 9999, newHandler);
             newHandler.setClient(newClient);
             
-            // Load Login UI
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/login.fxml"));
-            Parent root = loader.load();
+            // Gọi method showLoginUI có sẵn trong Client
+            newClient.showLoginUI(stage);
             
-            // Set client cho LoginController
-            LoginController loginController = loader.getController();
-            loginController.setClient(newClient);
-            newHandler.setLoginController(loginController);
-            
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Đăng Nhập");
-            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,7 +155,7 @@ public class LobbyController implements Initializable {
                 lblOnlineCount.setText("Online: " + onlinePlayers.size() + " người chơi");
             }
         }
-        System.out.println("✅ Đã cập nhật danh sách người chơi: " + (onlinePlayers != null ? onlinePlayers.size() : 0) + " người");
+        System.out.println("Đã cập nhật danh sách người chơi: " + (onlinePlayers != null ? onlinePlayers.size() : 0) + " người");
     }
     
     // Xử lý sắp xếp bảng xếp hạng

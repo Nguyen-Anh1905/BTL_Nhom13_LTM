@@ -61,17 +61,16 @@ public class ClientHandler implements Runnable {
                 Users user = userDAO.getUserByUsername(username);   
                 // Kiểm tra user tồn tại và mật khẩu đúng
                 if (user != null && user.getPassword().equals(password)) {
-                    // ✅ ĐĂNG NHẬP THÀNH CÔNG                  
+                    // ĐĂNG NHẬP THÀNH CÔNG                  
                     // Cập nhật trạng thái thành "online"
                     userDAO.updateUserStatus(username, "online");
                     // Lấy lại thông tin user đã cập nhật
                     user = userDAO.getUserByUsername(username);
-                    System.out.println("✅ " + username + " đăng nhập thành công!");
+                    System.out.println(username + " đăng nhập thành công!");
                     
                     // GỬI OBJECT USER về Client
                     out.writeObject(new Message(Protocol.LOGIN_SUCCESS, user));
-                    List<Users> onlinePlayers = userDAO.getOnlinePlayersFromView();
-                    out.writeObject(new Message(Protocol.PLAYER_LIST, onlinePlayers));
+                    // KHÔNG GỬI PLAYER_LIST NGAY - để client tự yêu cầu sau
                     
                 } else {
                     System.out.println("Sai tài khoản hoặc mật khẩu: " + username);
@@ -97,12 +96,12 @@ public class ClientHandler implements Runnable {
                     boolean success = userDAO.insertUser(newUser);
                     
                     if (success) {
-                        // ✅ ĐĂNG KÝ THÀNH CÔNG                 
+                        // ĐĂNG KÝ THÀNH CÔNG                 
                         // Cập nhật trạng thái thành "online"
                         userDAO.updateUserStatus(regUsername, "online"); 
                         // Lấy thông tin user vừa tạo
                         Users registeredUser = userDAO.getUserByUsername(regUsername);
-                        System.out.println("✅ Đăng ký thành công: " + regUsername);        
+                        System.out.println("Đăng ký thành công: " + regUsername);        
                         // GỬI OBJECT USER về Client
                         out.writeObject(new Message(Protocol.REGISTER_SUCCESS, registeredUser));
                     } else {
@@ -116,8 +115,16 @@ public class ClientHandler implements Runnable {
             case Protocol.LOGOUT:
                 String usernameLogout = (String) msg.getContent();
                 userDAO.updateUserStatus(usernameLogout, "offline");
-                System.out.println("👋 " + usernameLogout + " đã đăng xuất!");
+                System.out.println(usernameLogout + " đã đăng xuất!");
                 socket.close(); // Đóng kết nối với client này
+                break;
+                
+            case Protocol.GET_PLAYER_LIST:
+                System.out.println("Client yêu cầu danh sách người chơi");
+                List<Users> onlinePlayers = userDAO.getOnlinePlayersFromView();
+                out.writeObject(new Message(Protocol.PLAYER_LIST, onlinePlayers));
+                out.flush();
+                System.out.println("Đã gửi danh sách: " + onlinePlayers.size() + " người chơi");
                 break;
         }
     }
