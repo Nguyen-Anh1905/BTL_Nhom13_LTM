@@ -12,6 +12,8 @@ import javafx.scene.Parent;
 import javafx.fxml.FXMLLoader;
 import java.util.List;
 
+// Lớp này chịu trách nhiệm gửi và nhận tin từ server và các hàm show giao diện
+// lớp này nhận tin và gửi đến lớp MessageHandler để xử lí
 public class Client {
     private Socket socket;
     private ObjectOutputStream out;
@@ -35,6 +37,12 @@ public class Client {
                 handler.handleMessage(msg);
                 System.out.println("Received message: " + msg.getType() + " - " + msg.getContent());
             }
+        } catch (EOFException e) {
+            // Server đã đóng kết nối (logout bình thường)
+            System.out.println("📡 Server đã đóng kết nối.");
+        } catch (SocketException e) {
+            // Kết nối bị ngắt
+            System.out.println("🔌 Kết nối bị ngắt: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("🔌 Mất kết nối với server.");
             e.printStackTrace(); 
@@ -100,10 +108,5 @@ public class Client {
             e.printStackTrace();
         }
     }
-
-
-
-
-
 }
 

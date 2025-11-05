@@ -4,6 +4,7 @@ import Client.controller.*;
 import common.*;
 import javafx.application.Platform;
 import Server.model.*;
+import java.util.List;
 import javafx.stage.Stage;
 
 public class MessageHandler {
@@ -11,6 +12,7 @@ public class MessageHandler {
     private Message msg;
     private LoginController loginController;
     private RegisterController registerController;
+    private LobbyController lobbyController;
     private Client client;
 
     // Khởi tạo
@@ -60,6 +62,12 @@ public class MessageHandler {
             case Protocol.REGISTER_FAILURE:
                 if (registerController != null) {
                     registerController.handleServerResponse(msg);
+                }
+                break;
+            case Protocol.PLAYER_LIST:
+                if (lobbyController != null) {
+                    List<Users> onlinePlayers = (List<Users>) msg.getContent();
+                    lobbyController.updatePlayerList(onlinePlayers);
                 }
                 break;
             // Xử lý các loại message khác nếu cần

@@ -1,12 +1,12 @@
 package Client.controller;
 
 import Client.Client;
+import Client.MessageHandler;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.event.ActionEvent;
@@ -32,7 +32,23 @@ public class LobbyController implements Initializable {
     @FXML
     private Label lblUserStatus;  // "Trạng thái: Rảnh"
     @FXML
-    private TableView tblPlayers;
+    private Label lblOnlineCount;  // "Online: X người chơi"
+    
+    // Tab 1: Người chơi Online
+    @FXML
+    private TableView<Users> tblPlayers;
+    
+    // Tab 2: Lịch sử đấu
+    @FXML
+    private TableView tblMatchHistory;
+    
+    // Tab 3: Bảng xếp hạng
+    @FXML
+    private TableView<Users> tblLeaderboard;
+    @FXML
+    private Button btnSortByPoints;
+    @FXML
+    private Button btnSortByWins;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -75,23 +91,35 @@ public class LobbyController implements Initializable {
     @FXML
     private void handleLogout(ActionEvent event) {
         System.out.println("Đăng xuất");
-    // Gửi message LOGOUT lên server
-    client.sendMessage(new common.Message(common.Protocol.LOGOUT, currentUser.getUsername()));
+        
+        // Gửi message LOGOUT lên server
+        client.sendMessage(new common.Message(common.Protocol.LOGOUT, currentUser.getUsername()));
 
-    // Đóng socket client (nếu muốn)
-    // client.close(); // Nếu có method close()
-
-    // Quay về màn hình Login
-    try {
-        Stage stage = (Stage) lblWelcome.getScene().getWindow();
-        Parent root = FXMLLoader.load(getClass().getResource("/Client/GUI/fxml/login.fxml"));
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.setTitle("Đăng Nhập");
-        stage.show();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+        // Quay về màn hình Login và TẠO LẠI CLIENT
+        try {
+            Stage stage = (Stage) lblWelcome.getScene().getWindow();
+            
+            // Tạo lại MessageHandler và Client mới
+            MessageHandler newHandler = new MessageHandler();
+            Client newClient = new Client("localhost", 9999, newHandler);
+            newHandler.setClient(newClient);
+            
+            // Load Login UI
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/login.fxml"));
+            Parent root = loader.load();
+            
+            // Set client cho LoginController
+            LoginController loginController = loader.getController();
+            loginController.setClient(newClient);
+            newHandler.setLoginController(loginController);
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Đăng Nhập");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     // Method để nhận client từ LoginController/RegisterController
@@ -99,11 +127,45 @@ public class LobbyController implements Initializable {
         this.client = client;
     }
 
-    public void setPlayerList(List<Users> onlinePlayers) {
+    // Cập nhật danh sách người chơi (gọi từ MessageHandler)
+    public void updatePlayerList(List<Users> onlinePlayers) {
         if (onlinePlayers == null) {
-            tblPlayers.getItems().clear(); // hoặc setAll(Collections.emptyList());
+            tblPlayers.getItems().clear();
+            if (lblOnlineCount != null) {
+                lblOnlineCount.setText("Online: 0 người chơi");
+            }
         } else {
-            tblPlayers.getItems().setAll(onlinePlayers);
+            tblPlayers.getItems().clear();
+            tblPlayers.getItems().addAll(onlinePlayers);
+            if (lblOnlineCount != null) {
+                lblOnlineCount.setText("Online: " + onlinePlayers.size() + " người chơi");
+            }
+        }
+        System.out.println("✅ Đã cập nhật danh sách người chơi: " + (onlinePlayers != null ? onlinePlayers.size() : 0) + " người");
+    }
+    
+    // Xử lý sắp xếp bảng xếp hạng
+    @FXML
+    private void handleSortByPoints(ActionEvent event) {
+        System.out.println("Sắp xếp theo điểm");
+        // Gửi yêu cầu lấy bảng xếp hạng theo điểm
+        client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
+    }
+    
+    @FXML
+    private void handleSortByWins(ActionEvent event) {
+        System.out.println("Sắp xếp theo thắng");
+        // Gửi yêu cầu lấy bảng xếp hạng theo số trận thắng
+        client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_WINS, null));
+    }
+    
+    // Cập nhật bảng xếp hạng
+    public void updateLeaderboard(List<Users> leaderboard) {
+        if (tblLeaderboard != null) {
+            tblLeaderboard.getItems().clear();
+            if (leaderboard != null) {
+                tblLeaderboard.getItems().addAll(leaderboard);
+            }
         }
     }
 }

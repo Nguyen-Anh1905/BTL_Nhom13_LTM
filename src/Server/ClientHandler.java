@@ -58,9 +58,7 @@ public class ClientHandler implements Runnable {
                 String password = parts[1];
 
                 // Lấy user từ database
-                Users user = userDAO.getUserByUsername(username);
-                
-                
+                Users user = userDAO.getUserByUsername(username);   
                 // Kiểm tra user tồn tại và mật khẩu đúng
                 if (user != null && user.getPassword().equals(password)) {
                     // ✅ ĐĂNG NHẬP THÀNH CÔNG                  
@@ -72,6 +70,8 @@ public class ClientHandler implements Runnable {
                     
                     // GỬI OBJECT USER về Client
                     out.writeObject(new Message(Protocol.LOGIN_SUCCESS, user));
+                    List<Users> onlinePlayers = userDAO.getOnlinePlayersFromView();
+                    out.writeObject(new Message(Protocol.PLAYER_LIST, onlinePlayers));
                     
                 } else {
                     System.out.println("Sai tài khoản hoặc mật khẩu: " + username);
@@ -92,22 +92,17 @@ public class ClientHandler implements Runnable {
                     out.writeObject(new Message(Protocol.REGISTER_FAILURE, "Username đã tồn tại!"));
                 } else {
                     // Tạo user mới
-                    Users newUser = new Users(regUsername, regPassword, fullName);
-                    
+                    Users newUser = new Users(regUsername, regPassword, fullName);                  
                     // Lưu vào database
                     boolean success = userDAO.insertUser(newUser);
                     
                     if (success) {
-                        // ✅ ĐĂNG KÝ THÀNH CÔNG
-                        
+                        // ✅ ĐĂNG KÝ THÀNH CÔNG                 
                         // Cập nhật trạng thái thành "online"
-                        userDAO.updateUserStatus(regUsername, "online");
-                        
+                        userDAO.updateUserStatus(regUsername, "online"); 
                         // Lấy thông tin user vừa tạo
                         Users registeredUser = userDAO.getUserByUsername(regUsername);
-                        
-                        System.out.println("✅ Đăng ký thành công: " + regUsername);
-                        
+                        System.out.println("✅ Đăng ký thành công: " + regUsername);        
                         // GỬI OBJECT USER về Client
                         out.writeObject(new Message(Protocol.REGISTER_SUCCESS, registeredUser));
                     } else {
