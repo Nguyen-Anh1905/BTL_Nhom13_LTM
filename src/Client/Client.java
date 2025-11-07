@@ -69,7 +69,11 @@ public class Client {
             LobbyController lobbyController = loader.getController();
             lobbyController.setClient(this);
             lobbyController.setCurrentUser(user);
-            handler.setLobbyController(lobbyController);  // ← THÊM DÒNG NÀY
+            handler.setLobbyController(lobbyController);  // SET controller trước
+
+            // GỬI REQUEST LẤY DANH SÁCH NGƯỜI CHƠI NGAY SAU KHI SET CONTROLLER
+            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
+            sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
 
             Scene scene = new Scene(root);
             stage.setScene(scene);
@@ -108,25 +112,6 @@ public class Client {
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("Đăng Ký");
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void showLeaderboardUI(Stage stage) {
-        this.primaryStage = stage;
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/Leaderboard.fxml"));
-            Parent root = loader.load();
-
-            LeaderboardController leaderboardController = loader.getController();
-            leaderboardController.setClient(this);
-            handler.setLeaderboardController(leaderboardController);
-
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Leaderboard");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

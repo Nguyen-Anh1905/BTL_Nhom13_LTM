@@ -140,6 +140,30 @@ public class ClientHandler implements Runnable {
                 out.flush();
                 System.out.println("Đã gửi leaderboard (wins): " + (lbWins != null ? lbWins.size() : 0));
                 break;
+            case Protocol.SEARCH_PLAYER_IN_LOBBY:
+                System.out.println("Client yêu cầu tìm user (Tab 1 - Lobby): " + msg.getContent());
+                String findUsernameLobby = (String) msg.getContent();
+                List<Users> foundListLobby = userDAO.searchUsersByUsername(findUsernameLobby);
+                if (foundListLobby == null || foundListLobby.isEmpty()) {
+                    System.out.println("Không tìm thấy user: " + findUsernameLobby);
+                } else {
+                    System.out.println("Tìm thấy " + foundListLobby.size() + " người chơi khớp với: " + findUsernameLobby);
+                }
+                out.writeObject(new Message(Protocol.SEARCH_RESULT_LOBBY, foundListLobby));
+                out.flush();
+                break;
+            case Protocol.SEARCH_PLAYER_IN_LEADERBOARD:
+                System.out.println("Client yêu cầu tìm user (Tab 3 - Leaderboard): " + msg.getContent());
+                String findUsernameLeaderboard = (String) msg.getContent();
+                List<Users> foundListLeaderboard = userDAO.searchUsersByUsername(findUsernameLeaderboard);
+                if (foundListLeaderboard == null || foundListLeaderboard.isEmpty()) {
+                    System.out.println("Không tìm thấy user: " + findUsernameLeaderboard);
+                } else {
+                    System.out.println("Tìm thấy " + foundListLeaderboard.size() + " người chơi khớp với: " + findUsernameLeaderboard);
+                }
+                out.writeObject(new Message(Protocol.SEARCH_RESULT_LEADERBOARD, foundListLeaderboard));
+                out.flush();
+                break;
             case Protocol.SEARCH_PLAYER:
                 System.out.println("Client yêu cầu tìm user: " + msg.getContent());
                 String findUsername = (String) msg.getContent();

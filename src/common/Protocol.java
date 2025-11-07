@@ -9,6 +9,8 @@ public class Protocol {
     public static final String GET_LEADERBOARD_POINTS = "get leaderboard points";
     public static final String GET_LEADERBOARD_WINS = "get leaderboard wins";
     public static final String SEARCH_PLAYER = "search player";
+    public static final String SEARCH_PLAYER_IN_LOBBY = "search player in lobby";  // Tab 1
+    public static final String SEARCH_PLAYER_IN_LEADERBOARD = "search player in leaderboard";  // Tab 3
 
     
     // Server → Client
@@ -18,5 +20,7 @@ public class Protocol {
     public static final String REGISTER_FAILURE = "register failure"; 
     public static final String PLAYER_LIST = "player list";
     public static final String LEADERBOARD_DATA = "leaderboard data";
+    public static final String SEARCH_RESULT_LOBBY = "search result lobby";  // Kết quả tìm kiếm cho Tab 1
+    public static final String SEARCH_RESULT_LEADERBOARD = "search result leaderboard";  // Kết quả tìm kiếm cho Tab 3
     // Có thể dùng LEADERBOARD_DATA để trả về kết quả tìm kiếm (danh sách user hoặc rỗng)
 }

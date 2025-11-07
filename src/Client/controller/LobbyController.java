@@ -214,11 +214,8 @@ public class LobbyController implements Initializable {
     @FXML
     private void handleViewLeaderboard(ActionEvent event) {
         System.out.println("Xem bảng xếp hạng");
-        try {
-            client.showLeaderboardUI((Stage) lblWelcome.getScene().getWindow());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Chuyển sang tab Bảng xếp hạng (Tab 3)
+        // TODO: Nếu cần mở window riêng thì dùng client.showLeaderboardUI()
     }
     
     @FXML
@@ -296,7 +293,7 @@ public class LobbyController implements Initializable {
             return;
         }
         System.out.println("Gửi yêu cầu tìm user: " + q);
-        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER_IN_LEADERBOARD, q.trim()));
     }
 
     @FXML
@@ -314,7 +311,7 @@ public class LobbyController implements Initializable {
             return;
         }
         System.out.println("Gửi yêu cầu tìm user (players tab): " + q);
-        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER_IN_LOBBY, q.trim()));
     }
 
     @FXML

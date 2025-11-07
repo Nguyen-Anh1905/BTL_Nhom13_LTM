@@ -13,7 +13,6 @@ public class MessageHandler {
     private LoginController loginController;
     private RegisterController registerController;
     private LobbyController lobbyController;
-    private LeaderboardController leaderboardController;
     private Client client;
 
     // Khởi tạo
@@ -34,9 +33,6 @@ public class MessageHandler {
         this.lobbyController = lobbyController;
     }
 
-    public void setLeaderboardController(LeaderboardController leaderboardController) {
-        this.leaderboardController = leaderboardController;
-    }
 
     public void handleMessage(Message msg) {
         System.out.println("Received message: " + msg.getType() + " - " + msg.getContent());
@@ -52,9 +48,6 @@ public class MessageHandler {
                         try {
                             // Use primary stage stored in client to avoid null Scene/Window
                             client.showLobbyUI(client.getPrimaryStage(), user);
-                            // SAU KHI CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
-                            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
-                            client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -73,9 +66,6 @@ public class MessageHandler {
                     Platform.runLater(() -> {
                         try {
                             client.showLobbyUI(client.getPrimaryStage(), user);
-                            // SAU KHI ĐĂNG KÝ VÀ CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
-                            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
-                            client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -111,12 +101,30 @@ public class MessageHandler {
                     Platform.runLater(() -> {
                         lobbyController.updateLeaderboard(list);
                     });
-                } else if (leaderboardController != null) {
-                    Platform.runLater(() -> {
-                        leaderboardController.updateLeaderboard(list);
-                    });
                 } else {
                     System.out.println("Không có controller nào để nhận LEADERBOARD_DATA");
+                }
+                break;
+            case Protocol.SEARCH_RESULT_LOBBY:
+                System.out.println("Nhận được SEARCH_RESULT_LOBBY (Tab 1)");
+                List<Users> searchResultLobby = (List<Users>) msg.getContent();
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.updatePlayerList(searchResultLobby);
+                    });
+                } else {
+                    System.out.println("lobbyController is NULL!");
+                }
+                break;
+            case Protocol.SEARCH_RESULT_LEADERBOARD:
+                System.out.println("Nhận được SEARCH_RESULT_LEADERBOARD (Tab 3)");
+                List<Users> searchResultLeaderboard = (List<Users>) msg.getContent();
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.updateLeaderboard(searchResultLeaderboard);
+                    });
+                } else {
+                    System.out.println("lobbyController is NULL!");
                 }
                 break;
             // Xử lý các loại message khác nếu cần
