@@ -126,6 +126,33 @@ public class ClientHandler implements Runnable {
                 out.flush();
                 System.out.println("Đã gửi danh sách: " + onlinePlayers.size() + " người chơi");
                 break;
+            case Protocol.GET_LEADERBOARD_POINTS:
+                System.out.println("Client yêu cầu leaderboard theo điểm");
+                List<Users> lbPoints = userDAO.getLeaderboardByPoints();
+                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, lbPoints));
+                out.flush();
+                System.out.println("Đã gửi leaderboard (points): " + (lbPoints != null ? lbPoints.size() : 0));
+                break;
+            case Protocol.GET_LEADERBOARD_WINS:
+                System.out.println("Client yêu cầu leaderboard theo thắng");
+                List<Users> lbWins = userDAO.getLeaderboardByWins();
+                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, lbWins));
+                out.flush();
+                System.out.println("Đã gửi leaderboard (wins): " + (lbWins != null ? lbWins.size() : 0));
+                break;
+            case Protocol.SEARCH_PLAYER:
+                System.out.println("Client yêu cầu tìm user: " + msg.getContent());
+                String findUsername = (String) msg.getContent();
+                // Dùng phương thức tìm kiếm partial trong DAO để trả về nhiều kết quả
+                List<Users> foundList = userDAO.searchUsersByUsername(findUsername);
+                if (foundList == null || foundList.isEmpty()) {
+                    System.out.println("Không tìm thấy user: " + findUsername);
+                } else {
+                    System.out.println("Tìm thấy " + foundList.size() + " người chơi khớp với: " + findUsername);
+                }
+                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, foundList));
+                out.flush();
+                break;
         }
     }
 }

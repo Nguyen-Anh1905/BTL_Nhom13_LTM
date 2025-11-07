@@ -10,7 +10,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.event.ActionEvent;
@@ -87,18 +91,56 @@ public class LobbyController implements Initializable {
     private Button btnSortByPoints;
     @FXML
     private Button btnSortByWins;
+    @FXML
+    private TableColumn<Users, Integer> colRank;
+    @FXML
+    private TableColumn<Users, String> colPlayerName;
+    @FXML
+    private TableColumn<Users, Integer> colPoints;
+    @FXML
+    private TableColumn<Users, Integer> colTotalWins;
+    @FXML
+    private TableColumn<Users, Integer> colTotalDraws;
+    @FXML
+    private TableColumn<Users, Integer> colTotalLosses;
+    @FXML
+    private Label lblSearchResult;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         System.out.println("Lobby Controller đã khởi tạo!");
         
-        // Set up cell value factories cho TableView người chơi
-        colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
-        colTotalPoints.setCellValueFactory(new PropertyValueFactory<>("totalPoints"));
-        colWins.setCellValueFactory(new PropertyValueFactory<>("totalWins"));
-        colDraws.setCellValueFactory(new PropertyValueFactory<>("totalDraws"));
-        colLosses.setCellValueFactory(new PropertyValueFactory<>("totalLosses"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+    // Set up cell value factories cho TableView người chơi (Lobby - online players)
+    // Use explicit cell value factories to avoid reflection issues
+    if (colUsername != null) colUsername.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getUsername()));
+    if (colTotalPoints != null) colTotalPoints.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalPoints()).asObject());
+    if (colWins != null) colWins.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalWins()).asObject());
+    if (colDraws != null) colDraws.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalDraws()).asObject());
+    if (colLosses != null) colLosses.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalLosses()).asObject());
+    if (colStatus != null) colStatus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStatus()));
+
+    // Set up cell value factories cho bảng xếp hạng (nếu cần)
+    if (colPlayerName != null) colPlayerName.setCellValueFactory(new PropertyValueFactory<>("username"));
+    if (colPoints != null) colPoints.setCellValueFactory(new PropertyValueFactory<>("totalPoints"));
+    if (colTotalWins != null) colTotalWins.setCellValueFactory(new PropertyValueFactory<>("totalWins"));
+    if (colTotalDraws != null) colTotalDraws.setCellValueFactory(new PropertyValueFactory<>("totalDraws"));
+    if (colTotalLosses != null) colTotalLosses.setCellValueFactory(new PropertyValueFactory<>("totalLosses"));
+
+        // Rank column: show current index + 1
+        if (colRank != null) {
+            colRank.setCellFactory(col -> new javafx.scene.control.TableCell<Users, Integer>() {
+                @Override
+                protected void updateItem(Integer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setText(null);
+                    } else {
+                        int rowIndex = getIndex() + 1;
+                        setText(String.valueOf(rowIndex));
+                    }
+                }
+            });
+        }
         
         // Set up cột Hành động với 2 nút: Mời đấu và Chat
         colActions.setCellFactory(param -> new TableCell<Users, Void>() {
@@ -172,7 +214,11 @@ public class LobbyController implements Initializable {
     @FXML
     private void handleViewLeaderboard(ActionEvent event) {
         System.out.println("Xem bảng xếp hạng");
-        // TODO: Chuyển sang màn hình Leaderboard
+        try {
+            client.showLeaderboardUI((Stage) lblWelcome.getScene().getWindow());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML
@@ -214,6 +260,10 @@ public class LobbyController implements Initializable {
         } else {
             tblPlayers.getItems().clear();
             tblPlayers.getItems().addAll(onlinePlayers);
+            // Debug: print each user being added
+            for (Users u : onlinePlayers) {
+                System.out.println("updatePlayerList - user: " + u.getUsername() + ", points=" + u.getTotalPoints() + ", wins=" + u.getTotalWins() + ", draws=" + u.getTotalDraws() + ", losses=" + u.getTotalLosses() + ", status=" + u.getStatus());
+            }
             if (lblOnlineCount != null) {
                 lblOnlineCount.setText("Online: " + onlinePlayers.size() + " người chơi");
             }
@@ -235,13 +285,76 @@ public class LobbyController implements Initializable {
         // Gửi yêu cầu lấy bảng xếp hạng theo số trận thắng
         client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_WINS, null));
     }
+
+    @FXML
+    private void handleSearchLeaderboard(ActionEvent event) {
+        if (client == null) return;
+        String q = txtSearchLeaderboard.getText();
+        if (q == null || q.trim().isEmpty()) {
+            // Optionally show a message to user (label or dialog). For now, print
+            System.out.println("Vui lòng nhập username để tìm kiếm");
+            return;
+        }
+        System.out.println("Gửi yêu cầu tìm user: " + q);
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadPlayers(ActionEvent event) {
+        System.out.println("Reload players list");
+        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
+    }
+
+    @FXML
+    private void handleSearchPlayers(ActionEvent event) {
+        if (client == null) return;
+        String q = txtSearchPlayers.getText();
+        if (q == null || q.trim().isEmpty()) {
+            System.out.println("Vui lòng nhập username để tìm kiếm");
+            return;
+        }
+        System.out.println("Gửi yêu cầu tìm user (players tab): " + q);
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadHistory(ActionEvent event) {
+        System.out.println("Reload match history");
+        // TODO: implement fetch match history from server if a protocol exists
+    }
+
+    @FXML
+    private void handleSearchHistory(ActionEvent event) {
+        if (client == null) return;
+        String q = txtSearchHistory.getText();
+        if (q == null || q.trim().isEmpty()) {
+            System.out.println("Vui lòng nhập username để tìm kiếm trong lịch sử");
+            return;
+        }
+        System.out.println("Gửi yêu cầu tìm user (history tab): " + q);
+        // For now reuse SEARCH_PLAYER to request user info from server
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadLeaderboard(ActionEvent event) {
+        System.out.println("Reload leaderboard (by points)");
+        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
+    }
     
     // Cập nhật bảng xếp hạng
     public void updateLeaderboard(List<Users> leaderboard) {
         if (tblLeaderboard != null) {
+            System.out.println("LobbyController.updateLeaderboard called, list size = " + (leaderboard == null ? "null" : leaderboard.size()));
             tblLeaderboard.getItems().clear();
             if (leaderboard != null) {
                 tblLeaderboard.getItems().addAll(leaderboard);
+                System.out.println("Added " + leaderboard.size() + " users to tblLeaderboard");
+                if (leaderboard.isEmpty()) {
+                    if (lblSearchResult != null) lblSearchResult.setText("Không tìm thấy người chơi");
+                } else {
+                    if (lblSearchResult != null) lblSearchResult.setText("");
+                }
             }
         }
     }
@@ -257,59 +370,5 @@ public class LobbyController implements Initializable {
     private void handleChat(Users user) {
         System.out.println("Mở chat với: " + user.getUsername());
         // TODO: Mở cửa sổ chat với user này
-    }
-    
-    // ========== XỬ LÝ RELOAD VÀ SEARCH ==========
-    
-    // Tab 1: Người chơi Online
-    @FXML
-    private void handleReloadPlayers(ActionEvent event) {
-        System.out.println("Reload danh sách người chơi");
-        client.sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
-    }
-    
-    @FXML
-    private void handleSearchPlayers(ActionEvent event) {
-        String keyword = txtSearchPlayers.getText().trim();
-        System.out.println("Tìm kiếm người chơi: " + keyword);
-        // TODO: Lọc danh sách người chơi theo keyword
-        if (keyword.isEmpty()) {
-            return;
-        }
-        // Filter local table
-        tblPlayers.getItems().filtered(user -> 
-            user.getUsername().toLowerCase().contains(keyword.toLowerCase()) ||
-            user.getFullName().toLowerCase().contains(keyword.toLowerCase())
-        );
-    }
-    
-    // Tab 2: Lịch sử đấu
-    @FXML
-    private void handleReloadHistory(ActionEvent event) {
-        System.out.println("Reload lịch sử đấu");
-        // TODO: Gửi yêu cầu lấy lịch sử đấu
-        // client.sendMessage(new Message(Protocol.GET_MATCH_HISTORY, currentUser.getUserId()));
-    }
-    
-    @FXML
-    private void handleSearchHistory(ActionEvent event) {
-        String keyword = txtSearchHistory.getText().trim();
-        System.out.println("Tìm kiếm lịch sử: " + keyword);
-        // TODO: Lọc lịch sử đấu theo keyword
-    }
-    
-    // Tab 3: Bảng xếp hạng
-    @FXML
-    private void handleReloadLeaderboard(ActionEvent event) {
-        System.out.println("Reload bảng xếp hạng");
-        // Reload theo bộ lọc hiện tại (mặc định theo điểm)
-        client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
-    }
-    
-    @FXML
-    private void handleSearchLeaderboard(ActionEvent event) {
-        String keyword = txtSearchLeaderboard.getText().trim();
-        System.out.println("Tìm kiếm bảng xếp hạng: " + keyword);
-        // TODO: Lọc bảng xếp hạng theo keyword
     }
 }

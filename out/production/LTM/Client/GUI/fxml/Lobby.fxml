@@ -9,7 +9,6 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -87,17 +86,16 @@
                                               <Insets left="10.0" top="10.0" />
                                            </VBox.margin>
                                         </Label>
-                                        <!-- Thanh công cụ: Reload + Tìm kiếm -->
-                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                           <children>
-                                              <Button fx:id="btnReloadPlayers" mnemonicParsing="false" onAction="#handleReloadPlayers" styleClass="button-reload" text="Reload" />
-                                              <TextField fx:id="txtSearchPlayers" promptText="Tìm kiếm người chơi..." prefWidth="250.0" />
-                                              <Button fx:id="btnSearchPlayers" mnemonicParsing="false" onAction="#handleSearchPlayers" styleClass="button-search" text="Tìm kiếm" />
-                                           </children>
-                                           <VBox.margin>
-                                              <Insets left="10.0" right="10.0" />
-                                           </VBox.margin>
-                                        </HBox>
+                              <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                  <children>
+                                     <Button fx:id="btnReloadPlayers" mnemonicParsing="false" onAction="#handleReloadPlayers" styleClass="button-reload" text="Reload" />
+                                     <TextField fx:id="txtSearchPlayers" promptText="Tìm kiếm theo đối thủ..." prefWidth="250.0" />
+                                     <Button fx:id="btnSearchPlayers" mnemonicParsing="false" onAction="#handleSearchPlayers" styleClass="button-search" text="Tìm kiếm" />
+                                  </children>
+                                  <VBox.margin>
+                                     <Insets left="10.0" right="10.0" />
+                                  </VBox.margin>
+                               </HBox>
                                         <TableView fx:id="tblPlayers" prefHeight="380.0" prefWidth="760.0" VBox.vgrow="ALWAYS">
                                           <columns>
                                             <TableColumn fx:id="colUsername" prefWidth="150.0" text="Tên người chơi" />
@@ -134,7 +132,6 @@
                                               <Insets left="10.0" top="10.0" />
                                            </VBox.margin>
                                         </Label>
-                                        <!-- Thanh công cụ: Reload + Tìm kiếm -->
                                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                                            <children>
                                               <Button fx:id="btnReloadHistory" mnemonicParsing="false" onAction="#handleReloadHistory" styleClass="button-reload" text="Reload" />
@@ -166,62 +163,66 @@
                       </Tab>
                       
                       <!-- Tab 3: Bảng xếp hạng -->
-                      <Tab text="Bảng xếp hạng">
-                        <content>
-                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                               <children>
-                                  <VBox prefHeight="420.0" prefWidth="780.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                     <children>
-                                        <!-- Tiêu đề và bộ lọc -->
-                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                           <children>
-                                              <Label text="Bảng xếp hạng:" textFill="#212121">
-                                                 <font>
-                                                    <Font name="System Bold" size="14.0" />
-                                                 </font>
-                                              </Label>
-                                              <Label text="Xếp theo:" textFill="#616161">
-                                                 <font>
-                                                    <Font size="12.0" />
-                                                 </font>
-                                              </Label>
-                                              <Button fx:id="btnSortByPoints" mnemonicParsing="false" onAction="#handleSortByPoints" styleClass="button-sort" text="Tổng điểm" />
-                                              <Button fx:id="btnSortByWins" mnemonicParsing="false" onAction="#handleSortByWins" styleClass="button-sort" text="Số trận thắng" />
-                                           </children>
-                                           <VBox.margin>
-                                              <Insets left="10.0" top="10.0" />
-                                           </VBox.margin>
-                                        </HBox>
-                                        <!-- Thanh công cụ: Reload + Tìm kiếm -->
-                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                           <children>
-                                              <Button fx:id="btnReloadLeaderboard" mnemonicParsing="false" onAction="#handleReloadLeaderboard" styleClass="button-reload" text="Reload" />
-                                              <TextField fx:id="txtSearchLeaderboard" promptText="Tìm kiếm người chơi..." prefWidth="250.0" />
-                                              <Button fx:id="btnSearchLeaderboard" mnemonicParsing="false" onAction="#handleSearchLeaderboard" styleClass="button-search" text="Tìm kiếm" />
-                                           </children>
-                                           <VBox.margin>
-                                              <Insets left="10.0" right="10.0" />
-                                           </VBox.margin>
-                                        </HBox>
-                                        <TableView fx:id="tblLeaderboard" prefHeight="340.0" prefWidth="760.0" VBox.vgrow="ALWAYS">
-                                          <columns>
-                                            <TableColumn fx:id="colRank" prefWidth="80.0" text="Hạng" />
-                                            <TableColumn fx:id="colPlayerName" prefWidth="200.0" text="Tên người chơi" />
-                                            <TableColumn fx:id="colPoints" prefWidth="120.0" text="Tổng điểm" />
-                                            <TableColumn fx:id="colTotalWins" prefWidth="100.0" text="Thắng" />
-                                            <TableColumn fx:id="colTotalDraws" prefWidth="100.0" text="Hòa" />
-                                            <TableColumn fx:id="colTotalLosses" prefWidth="100.0" text="Thua" />
-                                          </columns>
-                                           <VBox.margin>
-                                              <Insets bottom="10.0" left="10.0" right="10.0" />
-                                           </VBox.margin>
-                                        </TableView>
-                                     </children>
-                                  </VBox>
-                               </children>
-                            </AnchorPane>
-                        </content>
-                      </Tab>
+                        <Tab text="Bảng xếp hạng">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                    <children>
+                                        <VBox prefHeight="420.0" prefWidth="780.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <children>
+                                                <!-- Tiêu đề và bộ lọc -->
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <children>
+                                                        <Label text="Bảng xếp hạng:" textFill="#212121">
+                                                            <font>
+                                                                <Font name="System Bold" size="14.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <Label text="Xếp theo:" textFill="#616161">
+                                                            <font>
+                                                                <Font size="12.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <Button fx:id="btnSortByPoints" mnemonicParsing="false" onAction="#handleSortByPoints" styleClass="button-sort" text="Tổng điểm" />
+                                                        <Button fx:id="btnSortByWins" mnemonicParsing="false" onAction="#handleSortByWins" styleClass="button-sort" text="Số trận thắng" />
+                                                    </children>
+                                                    <VBox.margin>
+                                                        <Insets left="10.0" top="10.0" />
+                                                    </VBox.margin>
+                                                </HBox>
+                                                <!-- Thanh công cụ: Reload + Tìm kiếm -->
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <children>
+                                                        <Button fx:id="btnReloadLeaderboard" mnemonicParsing="false" onAction="#handleReloadLeaderboard" styleClass="button-reload" text="Reload" />
+                                                        <TextField fx:id="txtSearchLeaderboard" promptText="Tìm kiếm người chơi..." prefWidth="250.0" />
+                                                        <Button fx:id="btnSearchLeaderboard" mnemonicParsing="false" onAction="#handleSearchLeaderboard" styleClass="button-search" text="Tìm kiếm" />
+                                                    </children>
+                                                    <VBox.margin>
+                                                        <Insets left="10.0" right="10.0" />
+                                                    </VBox.margin>
+                                                </HBox>
+
+
+                                                <!-- Thêm mấy nút mời với chát vào đây -->
+                                                <TableView fx:id="tblLeaderboard" prefHeight="340.0" prefWidth="760.0" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="colRank" prefWidth="80.0" text="Hạng" />
+                                                        <TableColumn fx:id="colPlayerName" prefWidth="200.0" text="Tên người chơi" />
+                                                        <TableColumn fx:id="colPoints" prefWidth="120.0" text="Tổng điểm" />
+                                                        <TableColumn fx:id="colTotalWins" prefWidth="100.0" text="Thắng" />
+                                                        <TableColumn fx:id="colTotalDraws" prefWidth="100.0" text="Hòa" />
+                                                        <TableColumn fx:id="colTotalLosses" prefWidth="100.0" text="Thua" />
+                                                    </columns>
+                                                    <VBox.margin>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" />
+                                                    </VBox.margin>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </Tab>
+
                     </tabs>
                   </TabPane>
                </children>

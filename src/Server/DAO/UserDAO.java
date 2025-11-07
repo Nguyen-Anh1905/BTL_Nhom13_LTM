@@ -12,7 +12,7 @@ public class UserDAO {
     // Thông tin kết nối database
     private static final String URL = "jdbc:mysql://localhost:3306/gamevtv";
     private static final String USER = "root";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "cuong1804sv@";
     
     // Lấy connection
     private Connection getConnection() throws SQLException {
@@ -184,6 +184,32 @@ public class UserDAO {
             e.printStackTrace();
         }
         return leaderboard;
+    }
+
+    // Tìm người dùng theo username (partial match) - trả về danh sách
+    public List<Users> searchUsersByUsername(String pattern) {
+        List<Users> results = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE username LIKE ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + pattern + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullName(rs.getString("full_name"));
+                user.setStatus(rs.getString("status"));
+                user.setTotalPoints(rs.getInt("total_points"));
+                user.setTotalWins(rs.getInt("total_wins"));
+                user.setTotalDraws(rs.getInt("total_draws"));
+                user.setTotalLosses(rs.getInt("total_losses"));
+                results.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results;
     }
 
 
