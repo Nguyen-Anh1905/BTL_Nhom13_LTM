@@ -55,10 +55,22 @@ public class LobbyController implements Initializable {
     private TableColumn<Users, Integer> colLosses;
     @FXML
     private TableColumn<Users, String> colStatus;
+    @FXML
+    private Button btnReloadPlayers;
+    @FXML
+    private TextField txtSearchPlayers;
+    @FXML
+    private Button btnSearchPlayers;
     
     // Tab 2: Lịch sử đấu
     @FXML
     private TableView tblMatchHistory;
+    @FXML
+    private Button btnReloadHistory;
+    @FXML
+    private TextField txtSearchHistory;
+    @FXML
+    private Button btnSearchHistory;
     
     // Tab 3: Bảng xếp hạng
     @FXML
@@ -71,6 +83,8 @@ public class LobbyController implements Initializable {
     private TextField txtSearchLeaderboard;
     @FXML
     private Button btnSearchLeaderboard;
+    @FXML
+    private Button btnReloadLeaderboard;
     @FXML
     private TableColumn<Users, Integer> colRank;
     @FXML
@@ -238,6 +252,49 @@ public class LobbyController implements Initializable {
         }
         System.out.println("Gửi yêu cầu tìm user: " + q);
         client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadPlayers(ActionEvent event) {
+        System.out.println("Reload players list");
+        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
+    }
+
+    @FXML
+    private void handleSearchPlayers(ActionEvent event) {
+        if (client == null) return;
+        String q = txtSearchPlayers.getText();
+        if (q == null || q.trim().isEmpty()) {
+            System.out.println("Vui lòng nhập username để tìm kiếm");
+            return;
+        }
+        System.out.println("Gửi yêu cầu tìm user (players tab): " + q);
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadHistory(ActionEvent event) {
+        System.out.println("Reload match history");
+        // TODO: implement fetch match history from server if a protocol exists
+    }
+
+    @FXML
+    private void handleSearchHistory(ActionEvent event) {
+        if (client == null) return;
+        String q = txtSearchHistory.getText();
+        if (q == null || q.trim().isEmpty()) {
+            System.out.println("Vui lòng nhập username để tìm kiếm trong lịch sử");
+            return;
+        }
+        System.out.println("Gửi yêu cầu tìm user (history tab): " + q);
+        // For now reuse SEARCH_PLAYER to request user info from server
+        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER, q.trim()));
+    }
+
+    @FXML
+    private void handleReloadLeaderboard(ActionEvent event) {
+        System.out.println("Reload leaderboard (by points)");
+        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
     }
     
     // Cập nhật bảng xếp hạng
