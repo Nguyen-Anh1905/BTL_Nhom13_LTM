@@ -1,0 +1,75 @@
+/* Lobby.css */
+
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.table-view {
+    -fx-background-color: white;
+}
+
+.table-view .column-header {
+    -fx-background-color: #1976D2;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #F5F5F5;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #BBDEFB;
+}
+
+.button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 5;
+    -fx-padding: 8 15 8 15;
+}
+
+.button:hover {
+    -fx-background-color: #1976D2;
+}
+
+.button:pressed {
+    -fx-background-color: #0D47A1;
+}
+
+.button-chat {
+    -fx-background-color: #4CAF50;
+}
+
+.button-chat:hover {
+    -fx-background-color: #388E3C;
+}
+
+.button-challenge {
+    -fx-background-color: #FF5722;
+}
+
+.button-challenge:hover {
+    -fx-background-color: #E64A19;
+}
+
+.status-online {
+    -fx-text-fill: #4CAF50;
+    -fx-font-weight: bold;
+}
+
+.status-playing {
+    -fx-text-fill: #FF9800;
+    -fx-font-weight: bold;
+}
+
+.status-offline {
+    -fx-text-fill: #9E9E9E;
+    -fx-font-weight: bold;
+}

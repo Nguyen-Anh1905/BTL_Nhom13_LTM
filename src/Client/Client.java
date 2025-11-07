@@ -19,6 +19,7 @@ public class Client {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private MessageHandler handler;
+    private Stage primaryStage;
 
     public Client(String host, int port, MessageHandler handler) throws Exception{
         this.handler = handler;
@@ -60,6 +61,7 @@ public class Client {
 
 
     public void showLobbyUI(Stage stage, Server.model.Users user) {
+        this.primaryStage = stage;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/Lobby.fxml"));
             Parent root = loader.load();
@@ -78,6 +80,7 @@ public class Client {
         }
     }
     public void showLoginUI(Stage stage) {
+        this.primaryStage = stage;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/login.fxml"));
             Parent root = loader.load();
@@ -94,6 +97,7 @@ public class Client {
         }
     }
     public void showRegisterUI(Stage stage) {
+        this.primaryStage = stage;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/register.fxml"));
             Parent root = loader.load();
@@ -108,6 +112,29 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void showLeaderboardUI(Stage stage) {
+        this.primaryStage = stage;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/Leaderboard.fxml"));
+            Parent root = loader.load();
+
+            LeaderboardController leaderboardController = loader.getController();
+            leaderboardController.setClient(this);
+            handler.setLeaderboardController(leaderboardController);
+
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Leaderboard");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
     }
 }
 
