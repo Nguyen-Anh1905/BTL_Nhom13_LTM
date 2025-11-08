@@ -9,10 +9,20 @@
 !mo_ta.txt
 !README.md
 
-# Still ignore compiled files in src
+# Keep NetBeans project files
+!nbproject/
+!nbproject/**
+!build.xml
+!manifest.mf
+
+# Still ignore compiled files
 *.class
 src/**/*.class
+build/
+dist/
+nbbuild/
 
 # Ignore private NetBeans files
 nbproject/private/
+nbproject/private/**
 
