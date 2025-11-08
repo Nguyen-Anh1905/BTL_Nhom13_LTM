@@ -48,6 +48,9 @@ public class MessageHandler {
                         try {
                             // Use primary stage stored in client to avoid null Scene/Window
                             client.showLobbyUI(client.getPrimaryStage(), user);
+                            // SAU KHI CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
+                            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
+                            client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -66,6 +69,9 @@ public class MessageHandler {
                     Platform.runLater(() -> {
                         try {
                             client.showLobbyUI(client.getPrimaryStage(), user);
+                            // SAU KHI ĐĂNG KÝ VÀ CHUYỂN SANG LOBBY, YÊU CẦU DANH SÁCH NGƯỜI CHƠI
+                            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
+                            client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

@@ -5,8 +5,11 @@
         <group>
             <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Client/Client.java</file>
             <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Client/MessageHandler.java</file>
+            <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/common/Protocol.java</file>
             <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Server/Server.java</file>
+            <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Server/DAO/UserDAO.java</file>
             <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Server/ClientHandler.java</file>
+            <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Client/controller/LobbyController.java</file>
             <file>file:/C:/Users/anh97/Desktop/LapTrinhMang/LTM/src/Client/Main.java</file>
         </group>
     </open-files>

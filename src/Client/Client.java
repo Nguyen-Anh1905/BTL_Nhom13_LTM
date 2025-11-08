@@ -69,11 +69,7 @@ public class Client {
             LobbyController lobbyController = loader.getController();
             lobbyController.setClient(this);
             lobbyController.setCurrentUser(user);
-            handler.setLobbyController(lobbyController);  // SET controller trước
-
-            // GỬI REQUEST LẤY DANH SÁCH NGƯỜI CHƠI NGAY SAU KHI SET CONTROLLER
-            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
-            sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
+            handler.setLobbyController(lobbyController);  // ← THÊM DÒNG NÀY
 
             Scene scene = new Scene(root);
             stage.setScene(scene);
