@@ -7,22 +7,16 @@
 !src/**
 !database_final.sql
 !mo_ta.txt
-!README.md
 
-# Keep NetBeans project files
-!nbproject/
-!nbproject/**
-!build.xml
-!manifest.mf
-
-# Still ignore compiled files
+# Still ignore compiled files in src
 *.class
 src/**/*.class
+
+# Ignore NetBeans files
+nbproject/
 build/
 dist/
 nbbuild/
-
-# Ignore private NetBeans files
-nbproject/private/
-nbproject/private/**
+build.xml
+manifest.mf
 
