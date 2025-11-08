@@ -39,7 +39,6 @@
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <Button mnemonicParsing="false" onAction="#handleViewLeaderboard" text="Bảng Xếp Hạng" />
                         <Button mnemonicParsing="false" onAction="#handleLogout" text="Đăng Xuất" />
                      </children>
                   </HBox>

@@ -212,5 +212,29 @@ public class UserDAO {
         return results;
     }
 
-
+    // Tìm người dùng đang online theo username (dùng cho Lobby) - tìm trong view online_players
+    public List<Users> searchOnlineUsersByUsername(String pattern) {
+        List<Users> results = new ArrayList<>();
+        String sql = "SELECT * FROM online_players WHERE username LIKE ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + pattern + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullName(rs.getString("full_name"));
+                user.setStatus(rs.getString("status"));
+                user.setTotalPoints(rs.getInt("total_points"));
+                user.setTotalWins(rs.getInt("total_wins"));
+                user.setTotalDraws(rs.getInt("total_draws"));
+                user.setTotalLosses(rs.getInt("total_losses"));
+                results.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
 }

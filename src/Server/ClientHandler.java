@@ -143,7 +143,8 @@ public class ClientHandler implements Runnable {
             case Protocol.SEARCH_PLAYER_IN_LOBBY:
                 System.out.println("Client yêu cầu tìm user (Tab 1 - Lobby): " + msg.getContent());
                 String findUsernameLobby = (String) msg.getContent();
-                List<Users> foundListLobby = userDAO.searchUsersByUsername(findUsernameLobby);
+                // Search only among online players
+                List<Users> foundListLobby = userDAO.searchOnlineUsersByUsername(findUsernameLobby);
                 if (foundListLobby == null || foundListLobby.isEmpty()) {
                     System.out.println("Không tìm thấy user: " + findUsernameLobby);
                 } else {
