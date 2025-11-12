@@ -44,11 +44,7 @@ public class MessageHandler {
                     Platform.runLater(() -> {
                         try {
                             client.showLobbyUI(client.getPrimaryStage(), user);
-<<<<<<< HEAD
-=======
                             // SAU KHI CHUYỂN SANG LOBBY, GỬI YÊU CẦU DỮ LIỆU
-                            System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
->>>>>>> origin/Test
                             client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                             System.out.println("Gửi yêu cầu lấy bảng xếp hạng...");
                             client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
@@ -70,11 +66,8 @@ public class MessageHandler {
                     Platform.runLater(() -> {
                         try {
                             client.showLobbyUI(client.getPrimaryStage(), user);
-<<<<<<< HEAD
-=======
                             // SAU KHI ĐĂNG KÝ VÀ CHUYỂN SANG LOBBY, GỬI YÊU CẦU DỮ LIỆU
                             System.out.println("Gửi yêu cầu lấy danh sách người chơi...");
->>>>>>> origin/Test
                             client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
                             System.out.println("Gửi yêu cầu lấy bảng xếp hạng...");
                             client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
