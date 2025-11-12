@@ -286,13 +286,6 @@ public class LobbyController implements Initializable {
     }
     
     @FXML
-    private void handleViewLeaderboard(ActionEvent event) {
-        System.out.println("Xem bảng xếp hạng");
-        // Chuyển sang tab Bảng xếp hạng (Tab 3)
-        // TODO: Nếu cần mở window riêng thì dùng client.showLeaderboardUI()
-    }
-    
-    @FXML
     private void handleLogout(ActionEvent event) {
         System.out.println("Đăng xuất");
         

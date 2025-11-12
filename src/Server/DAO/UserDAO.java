@@ -213,6 +213,7 @@ public class UserDAO {
         return results;
     }
 
+<<<<<<< HEAD
     // Lấy thông tin lịch sử đấu của User đang đăng nhập
     public List<Matches> searchMatchesByUserId(int userId) {
         List<Matches> results = new ArrayList<>();
@@ -256,21 +257,43 @@ public class UserDAO {
                 user.setUserId(rs.getInt("user_id"));
                 user.setUsername(rs.getString("username"));
                 user.setPassword(rs.getString("password"));
+=======
+    // Tìm người dùng đang online theo username (dùng cho Lobby) - tìm trong view online_players
+    public List<Users> searchOnlineUsersByUsername(String pattern) {
+        List<Users> results = new ArrayList<>();
+        String sql = "SELECT * FROM online_players WHERE username LIKE ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + pattern + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+>>>>>>> origin/Test
                 user.setFullName(rs.getString("full_name"));
                 user.setStatus(rs.getString("status"));
                 user.setTotalPoints(rs.getInt("total_points"));
                 user.setTotalWins(rs.getInt("total_wins"));
                 user.setTotalDraws(rs.getInt("total_draws"));
                 user.setTotalLosses(rs.getInt("total_losses"));
+<<<<<<< HEAD
                 Timestamp createdAt = rs.getTimestamp("created_at");
                 if (createdAt != null) user.setCreatedAt(createdAt.toLocalDateTime());
                 Timestamp updatedAt = rs.getTimestamp("updated_at");
                 if (updatedAt != null) user.setUpdatedAt(updatedAt.toLocalDateTime());
                 return user;
+=======
+                results.add(user);
+>>>>>>> origin/Test
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+<<<<<<< HEAD
         return null;
+=======
+        return results;
+>>>>>>> origin/Test
     }
 }
