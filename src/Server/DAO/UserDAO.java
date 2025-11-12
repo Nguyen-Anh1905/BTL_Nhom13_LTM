@@ -213,5 +213,83 @@ public class UserDAO {
         return results;
     }
 
-    git checkout feature/Nguyen_Cuong/Lich_su_dau
+    // Lấy thông tin lịch sử đấu của User đang đăng nhập
+    public List<Matches> searchMatchesByUserId(int userId) {
+        List<Matches> results = new ArrayList<>();
+        String sql = "SELECT * FROM matches WHERE player1_id = ? OR player2_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Matches match = new Matches();
+                    match.setMatchId(rs.getInt("match_id"));
+                    match.setPlayer1Id(rs.getInt("player1_id"));
+                    match.setPlayer2Id(rs.getInt("player2_id"));
+                    match.setMatchStatus(rs.getString("match_status"));
+                    match.setTotalRounds(rs.getInt("total_rounds"));
+                    match.setPlayer1RoundsWon(rs.getInt("player1_rounds_won"));
+                    match.setPlayer2RoundsWon(rs.getInt("player2_rounds_won"));
+                    match.setWinnerId(rs.getInt("winner_id"));
+                    match.setResult(rs.getString("result"));
+                    Timestamp st = rs.getTimestamp("started_at");
+                    if (st != null) match.setStartedAt(st.toLocalDateTime());
+                    Timestamp et = rs.getTimestamp("ended_at");
+                    if (et != null) match.setEndedAt(et.toLocalDateTime());
+                    results.add(match);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    // Lấy user theo user_id
+    public Users getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    user.setPassword(rs.getString("password"));
+                    // nếu có thêm cột khác (full_name, status, ...) thì set ở đây
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Tìm người dùng đang online theo username (dùng cho Lobby) - tìm trong view online_players
+    public List<Users> searchOnlineUsersByUsername(String pattern) {
+        List<Users> results = new ArrayList<>();
+        String sql = "SELECT * FROM online_players WHERE username LIKE ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + pattern + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    results.add(user);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
 }
