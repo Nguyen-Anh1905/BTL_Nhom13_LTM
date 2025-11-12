@@ -9,13 +9,13 @@ public class MatchDetails {
     private int detailId;
     private int matchId;
     private int roundNumber;
-    private String letters;
-    private int wordLength;
-    private int durationSeconds;
+    private int letterId;
     private int player1WordsCount;
     private int player2WordsCount;
     private Integer winnerId;
     private String roundStatus;
+    private String player1Dic;
+    private String player2Dic;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;
@@ -25,16 +25,14 @@ public class MatchDetails {
     }
 
     // Constructor đầy đủ
-    public MatchDetails(int detailId, int matchId, int roundNumber, String letters,
-                        int wordLength, int durationSeconds, int player1WordsCount,
+    public MatchDetails(int detailId, int matchId, int roundNumber, int letterId,
+                        int player1WordsCount,
                         int player2WordsCount, Integer winnerId, String roundStatus,
                         LocalDateTime startedAt, LocalDateTime endedAt, LocalDateTime createdAt) {
         this.detailId = detailId;
         this.matchId = matchId;
         this.roundNumber = roundNumber;
-        this.letters = letters;
-        this.wordLength = wordLength;
-        this.durationSeconds = durationSeconds;
+        this.letterId = letterId;
         this.player1WordsCount = player1WordsCount;
         this.player2WordsCount = player2WordsCount;
         this.winnerId = winnerId;
@@ -45,12 +43,10 @@ public class MatchDetails {
     }
 
     // Constructor không có ID (dùng khi insert mới)
-    public MatchDetails(int matchId, int roundNumber, String letters, int wordLength) {
+    public MatchDetails(int matchId, int roundNumber, int letterId, int wordLength) {
         this.matchId = matchId;
         this.roundNumber = roundNumber;
-        this.letters = letters;
-        this.wordLength = wordLength;
-        this.durationSeconds = 60;
+        this.letterId = letterId;
         this.player1WordsCount = 0;
         this.player2WordsCount = 0;
         this.roundStatus = "waiting";
@@ -69,16 +65,16 @@ public class MatchDetails {
         return roundNumber;
     }
 
-    public String getLetters() {
-        return letters;
+    public int getLetterId() {
+        return letterId;
     }
 
-    public int getWordLength() {
-        return wordLength;
+    public String getPlayer2Dic() {
+        return player2Dic;
     }
 
-    public int getDurationSeconds() {
-        return durationSeconds;
+    public String getPlayer1Dic() {
+        return player1Dic;
     }
 
     public int getPlayer1WordsCount() {
@@ -122,16 +118,16 @@ public class MatchDetails {
         this.roundNumber = roundNumber;
     }
 
-    public void setLetters(String letters) {
-        this.letters = letters;
+    public void setLetterId(int letterId) {
+        this.letterId = letterId;
     }
 
-    public void setWordLength(int wordLength) {
-        this.wordLength = wordLength;
+    public void setPlayer1Dic(String player1Dic) {
+        this.player1Dic = player1Dic;
     }
 
-    public void setDurationSeconds(int durationSeconds) {
-        this.durationSeconds = durationSeconds;
+    public void setPlayer2Dic(String player2Dic) {
+        this.player2Dic = player2Dic;
     }
 
     public void setPlayer1WordsCount(int player1WordsCount) {
@@ -168,11 +164,14 @@ public class MatchDetails {
                 "detailId=" + detailId +
                 ", matchId=" + matchId +
                 ", roundNumber=" + roundNumber +
-                ", letters='" + letters + '\'' +
-                ", wordLength=" + wordLength +
+                ", letterId=" + letterId +
                 ", player1WordsCount=" + player1WordsCount +
                 ", player2WordsCount=" + player2WordsCount +
+                ", winnerId=" + winnerId +
                 ", roundStatus='" + roundStatus + '\'' +
+                ", startedAt=" + startedAt +
+                ", endedAt=" + endedAt +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }
