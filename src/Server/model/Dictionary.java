@@ -7,67 +7,46 @@ import java.time.LocalDateTime;
  */
 public class Dictionary {
     private int wordId;
+    private int letterId;
     private String word;
-    private int wordLength;
-    private String difficulty;
+    private String meaning;
     private LocalDateTime createdAt;
 
-    // Constructor mặc định
-    public Dictionary() {
-    }
 
-    // Constructor đầy đủ
-    public Dictionary(int wordId, String word, int wordLength, String difficulty, LocalDateTime createdAt) {
-        this.wordId = wordId;
-        this.word = word;
-        this.wordLength = wordLength;
-        this.difficulty = difficulty;
-        this.createdAt = createdAt;
-    }
-
-    // Constructor không có ID (dùng khi insert mới)
-    public Dictionary(String word, int wordLength, String difficulty) {
-        this.word = word;
-        this.wordLength = wordLength;
-        this.difficulty = difficulty;
-    }
-
-    // Getters
     public int getWordId() {
         return wordId;
+    }
+
+    public void setWordId(int word_id) {
+        this.wordId = word_id;
+    }
+
+    public int getLetterId() {
+        return letterId;
+    }
+
+    public void setLetterId(int letterId) {
+        this.letterId = letterId;
     }
 
     public String getWord() {
         return word;
     }
 
-    public int getWordLength() {
-        return wordLength;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    // Setters
-    public void setWordId(int wordId) {
-        this.wordId = wordId;
-    }
-
     public void setWord(String word) {
         this.word = word;
     }
 
-    public void setWordLength(int wordLength) {
-        this.wordLength = wordLength;
+    public String getMeaning() {
+        return meaning;
     }
 
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
+    public void setMeaning(String meaning) {
+        this.meaning = meaning;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
@@ -77,10 +56,11 @@ public class Dictionary {
     @Override
     public String toString() {
         return "Dictionary{" +
-                "wordId=" + wordId +
+                "word_id=" + wordId+
+                ", letterId=" + letterId +
                 ", word='" + word + '\'' +
-                ", wordLength=" + wordLength +
-                ", difficulty='" + difficulty + '\'' +
+                ", meaning='" + meaning + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }
