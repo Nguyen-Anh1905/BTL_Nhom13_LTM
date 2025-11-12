@@ -11,6 +11,10 @@ public class Protocol {
     public static final String SEARCH_PLAYER = "search player";
     public static final String SEARCH_PLAYER_IN_LOBBY = "search player in lobby";  // Tab 1
     public static final String SEARCH_PLAYER_IN_LEADERBOARD = "search player in leaderboard";  // Tab 3
+    public static final String GET_MATCH_HISTORY = "get match history";
+    public static final String MATCH_HISTORY_DATA = "match history data";
+    public static final String GET_MATCH_DETAIL = "get match detail";
+    public static final String MATCH_DETAIL_DATA = "match detail data";
 
     
     // Server → Client

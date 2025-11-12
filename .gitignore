@@ -19,3 +19,4 @@ dist/
 nbbuild/
 build.xml
 manifest.mf
+out/ 
