@@ -3,33 +3,33 @@ package Server.model;
 import java.time.LocalDateTime;
 
 /**
- * Model class đại diện cho bảng DICTIONARY trong database
+ * Model class đại diện cho bảng dictionary trong database
  */
 public class Dictionary {
     private int wordId;
     private String word;
-    private int wordLength;
-    private String difficulty;
     private LocalDateTime createdAt;
+    private Integer letterId;      // FK tới bảng letters (nullable)
+    private String meaning;
 
     // Constructor mặc định
     public Dictionary() {
     }
 
     // Constructor đầy đủ
-    public Dictionary(int wordId, String word, int wordLength, String difficulty, LocalDateTime createdAt) {
+    public Dictionary(int wordId, String word, LocalDateTime createdAt, Integer letterId, String meaning) {
         this.wordId = wordId;
         this.word = word;
-        this.wordLength = wordLength;
-        this.difficulty = difficulty;
         this.createdAt = createdAt;
+        this.letterId = letterId;
+        this.meaning = meaning;
     }
 
     // Constructor không có ID (dùng khi insert mới)
-    public Dictionary(String word, int wordLength, String difficulty) {
+    public Dictionary(String word, Integer letterId, String meaning) {
         this.word = word;
-        this.wordLength = wordLength;
-        this.difficulty = difficulty;
+        this.letterId = letterId;
+        this.meaning = meaning;
     }
 
     // Getters
@@ -41,16 +41,16 @@ public class Dictionary {
         return word;
     }
 
-    public int getWordLength() {
-        return wordLength;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public Integer getLetterId() {
+        return letterId;
+    }
+
+    public String getMeaning() {
+        return meaning;
     }
 
     // Setters
@@ -62,16 +62,16 @@ public class Dictionary {
         this.word = word;
     }
 
-    public void setWordLength(int wordLength) {
-        this.wordLength = wordLength;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setLetterId(Integer letterId) {
+        this.letterId = letterId;
+    }
+
+    public void setMeaning(String meaning) {
+        this.meaning = meaning;
     }
 
     @Override
@@ -79,8 +79,8 @@ public class Dictionary {
         return "Dictionary{" +
                 "wordId=" + wordId +
                 ", word='" + word + '\'' +
-                ", wordLength=" + wordLength +
-                ", difficulty='" + difficulty + '\'' +
+                ", letterId=" + letterId +
+                ", meaning='" + meaning + '\'' +
                 '}';
     }
 }

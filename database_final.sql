@@ -356,23 +356,35 @@ CREATE PROCEDURE FinishRound(
 BEGIN
     DECLARE v_match_id INT;
     DECLARE v_round_number INT;
+    DECLARE v_player1_id INT;
+    DECLARE v_player2_id INT;
     DECLARE v_player1_words INT;
     DECLARE v_player2_words INT;
     DECLARE v_winner_id INT;
     
-    -- Đếm số từ đúng của mỗi người
-    SELECT match_id, COUNT(DISTINCT CASE WHEN is_valid = TRUE THEN word END)
-    INTO v_match_id, v_player1_words
+    -- Lấy match_id và player IDs trước
+    SELECT match_id INTO v_match_id
+    FROM match_details
+    WHERE detail_id = p_detail_id;
+    
+    SELECT player1_id, player2_id
+    INTO v_player1_id, v_player2_id
+    FROM matches
+    WHERE match_id = v_match_id;
+    
+    -- Đếm số từ đúng của player 1
+    SELECT COUNT(DISTINCT CASE WHEN is_valid = TRUE THEN word END)
+    INTO v_player1_words
     FROM match_words
     WHERE detail_id = p_detail_id
-    AND user_id = (SELECT player1_id FROM matches WHERE match_id = v_match_id)
-    GROUP BY match_id;
+    AND user_id = v_player1_id;
     
+    -- Đếm số từ đúng của player 2
     SELECT COUNT(DISTINCT CASE WHEN is_valid = TRUE THEN word END)
     INTO v_player2_words
     FROM match_words
     WHERE detail_id = p_detail_id
-    AND user_id = (SELECT player2_id FROM matches WHERE match_id = v_match_id);
+    AND user_id = v_player2_id;
     
     -- Xác định người thắng vòng
     IF v_player1_words > v_player2_words THEN

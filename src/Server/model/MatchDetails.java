@@ -3,19 +3,17 @@ package Server.model;
 import java.time.LocalDateTime;
 
 /**
- * Model class đại diện cho bảng MATCH_DETAILS trong database
+ * Model class đại diện cho bảng match_details trong database
  */
 public class MatchDetails {
     private int detailId;
     private int matchId;
     private int roundNumber;
-    private String letters;
-    private int wordLength;
-    private int durationSeconds;
+    private Integer letterId;           // FK tới bảng letters (nullable)
     private int player1WordsCount;
     private int player2WordsCount;
-    private Integer winnerId;
-    private String roundStatus;
+    private Integer winnerId;           // FK tới bảng users (nullable)
+    private String roundStatus;         // enum: 'waiting', 'playing', 'completed'
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;
@@ -25,16 +23,14 @@ public class MatchDetails {
     }
 
     // Constructor đầy đủ
-    public MatchDetails(int detailId, int matchId, int roundNumber, String letters,
-                        int wordLength, int durationSeconds, int player1WordsCount,
-                        int player2WordsCount, Integer winnerId, String roundStatus,
-                        LocalDateTime startedAt, LocalDateTime endedAt, LocalDateTime createdAt) {
+    public MatchDetails(int detailId, int matchId, int roundNumber, Integer letterId,
+                        int player1WordsCount, int player2WordsCount, Integer winnerId,
+                        String roundStatus, LocalDateTime startedAt, LocalDateTime endedAt,
+                        LocalDateTime createdAt) {
         this.detailId = detailId;
         this.matchId = matchId;
         this.roundNumber = roundNumber;
-        this.letters = letters;
-        this.wordLength = wordLength;
-        this.durationSeconds = durationSeconds;
+        this.letterId = letterId;
         this.player1WordsCount = player1WordsCount;
         this.player2WordsCount = player2WordsCount;
         this.winnerId = winnerId;
@@ -45,12 +41,10 @@ public class MatchDetails {
     }
 
     // Constructor không có ID (dùng khi insert mới)
-    public MatchDetails(int matchId, int roundNumber, String letters, int wordLength) {
+    public MatchDetails(int matchId, int roundNumber, Integer letterId) {
         this.matchId = matchId;
         this.roundNumber = roundNumber;
-        this.letters = letters;
-        this.wordLength = wordLength;
-        this.durationSeconds = 60;
+        this.letterId = letterId;
         this.player1WordsCount = 0;
         this.player2WordsCount = 0;
         this.roundStatus = "waiting";
@@ -69,16 +63,8 @@ public class MatchDetails {
         return roundNumber;
     }
 
-    public String getLetters() {
-        return letters;
-    }
-
-    public int getWordLength() {
-        return wordLength;
-    }
-
-    public int getDurationSeconds() {
-        return durationSeconds;
+    public Integer getLetterId() {
+        return letterId;
     }
 
     public int getPlayer1WordsCount() {
@@ -122,16 +108,8 @@ public class MatchDetails {
         this.roundNumber = roundNumber;
     }
 
-    public void setLetters(String letters) {
-        this.letters = letters;
-    }
-
-    public void setWordLength(int wordLength) {
-        this.wordLength = wordLength;
-    }
-
-    public void setDurationSeconds(int durationSeconds) {
-        this.durationSeconds = durationSeconds;
+    public void setLetterId(Integer letterId) {
+        this.letterId = letterId;
     }
 
     public void setPlayer1WordsCount(int player1WordsCount) {
@@ -168,8 +146,7 @@ public class MatchDetails {
                 "detailId=" + detailId +
                 ", matchId=" + matchId +
                 ", roundNumber=" + roundNumber +
-                ", letters='" + letters + '\'' +
-                ", wordLength=" + wordLength +
+                ", letterId=" + letterId +
                 ", player1WordsCount=" + player1WordsCount +
                 ", player2WordsCount=" + player2WordsCount +
                 ", roundStatus='" + roundStatus + '\'' +
