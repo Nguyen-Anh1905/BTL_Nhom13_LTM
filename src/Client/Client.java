@@ -71,7 +71,7 @@ public class Client {
             lobbyController.setCurrentUser(user);
             handler.setLobbyController(lobbyController);  // ← THÊM DÒNG NÀY
 
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root);  
             stage.setScene(scene);
             stage.setTitle("Lobby - Chào mừng " + user.getFullName());
             stage.show();

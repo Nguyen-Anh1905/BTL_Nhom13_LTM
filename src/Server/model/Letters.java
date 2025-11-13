@@ -6,6 +6,14 @@ public class Letters {
     private int lengthWord;
     private int timeRound;
 
+    public Letters(int letterId, String letterDetail, int lengthWord, int timeRound) {
+        this.letterId = letterId;
+        this.letterDetail = letterDetail;
+        this.lengthWord = lengthWord;
+        this.timeRound = timeRound;
+    }
+
+    
     public int getLetterId() {
         return letterId;
     }

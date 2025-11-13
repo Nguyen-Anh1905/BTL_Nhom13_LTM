@@ -1,5 +1,5 @@
 package Server;
-
+import Server.service.Gameroom;
 import common.*;
 import java.io.*;
 import java.net.*;
@@ -16,14 +16,16 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private List<ClientHandler> clients;
+
+    private Gameroom currentGameroom; 
     
     private UserDAO userDAO = new UserDAO();
+    private int nguoiChoiID = -1;  // ID của user đang kết nối
+    private String tenNguoiChoi = null;  // Username của user đang kết nối
     private MatchHistoryService matchHistoryService = new MatchHistoryService();
 
-    public ClientHandler(Socket socket, List<ClientHandler> clients) {
+    public ClientHandler(Socket socket) {
         this.socket = socket;
-        this.clients = clients;
     }
 
     @Override
@@ -45,12 +47,36 @@ public class ClientHandler implements Runnable {
             }
         } catch (Exception e) {
             System.out.println("Client ngắt kết nối: " + socket.getInetAddress());
+            
+            // Xóa khỏi Map
+            if (nguoiChoiID != -1) {
+                Server.getUserHandlers().remove(nguoiChoiID);
+            }
+            
             // Nếu đã biết username, cập nhật status về offline
             if (username != null) {
                 userDAO.updateUserStatus(username, "offline");
                 System.out.println("Đã cập nhật " + username + " về offline do mất kết nối.");
+            } else if (tenNguoiChoi != null) {
+                userDAO.updateUserStatus(tenNguoiChoi, "offline");
+                System.out.println("Đã cập nhật " + tenNguoiChoi + " về offline do mất kết nối.");
             }
         }
+    }
+    // Method để gửi message cho client KHÁC (catch exception)
+    public void sendMessage(Message message) {
+        try {
+            out.writeObject(message);
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("Lỗi khi gửi message: " + e.getMessage());
+        }
+    }
+    
+    // Method để gửi message cho CHÍNH client này (throw exception)
+    private void sendToThisClient(Message message) throws IOException {
+        out.writeObject(message);
+        out.flush();
     }
 
     private void handleMessage(Message msg) throws IOException {
@@ -66,23 +92,24 @@ public class ClientHandler implements Runnable {
                 // Lấy user từ database
                 Users user = userDAO.getUserByUsername(username);   
                 // Kiểm tra user tồn tại và mật khẩu đúng
-                if (user != null && user.getPassword().equals(password)) {
-                    // ĐĂNG NHẬP THÀNH CÔNG                  
+                if (user != null && user.getPassword().equals(password)) {                 
                     // Cập nhật trạng thái thành "online"
                     userDAO.updateUserStatus(username, "online");
                     // Lấy lại thông tin user đã cập nhật
-                    user = userDAO.getUserByUsername(username);
-                    System.out.println(username + " đăng nhập thành công!");
+                    user = userDAO.getUserByUsername(username);                   
+                    // Lưu userId và username
+                    nguoiChoiID = user.getUserId();
+                    tenNguoiChoi = user.getUsername();
+                    // Thêm vào Map để các ClientHandler khác có thể tìm thấy
+                    Server.getUserHandlers().put(nguoiChoiID, this);
+                    System.out.println(username + " đăng nhập thành công! UserID: " + nguoiChoiID);
                     
                     // GỬI OBJECT USER về Client
-                    out.writeObject(new Message(Protocol.LOGIN_SUCCESS, user));
-                    // KHÔNG GỬI PLAYER_LIST NGAY - để client tự yêu cầu sau
-                    
+                    sendToThisClient(new Message(Protocol.LOGIN_SUCCESS, user));
                 } else {
                     System.out.println("Sai tài khoản hoặc mật khẩu: " + username);
-                    out.writeObject(new Message(Protocol.LOGIN_FAILURE, "Sai tên hoặc mật khẩu!"));
+                    sendToThisClient(new Message(Protocol.LOGIN_FAILURE, "Sai tên hoặc mật khẩu!"));
                 }
-                out.flush();
                 break;            
             case Protocol.REGISTER:  // ← THÊM case mới
                 // Parse dữ liệu: "fullName:username:password"
@@ -94,7 +121,7 @@ public class ClientHandler implements Runnable {
                 // Kiểm tra username đã tồn tại chưa
                 if (userDAO.checkUsernameExists(regUsername)) {
                     System.out.println("Đăng ký thất bại: Username đã tồn tại - " + regUsername);
-                    out.writeObject(new Message(Protocol.REGISTER_FAILURE, "Username đã tồn tại!"));
+                    sendToThisClient(new Message(Protocol.REGISTER_FAILURE, "Username đã tồn tại!"));
                 } else {
                     // Tạo user mới
                     Users newUser = new Users(regUsername, regPassword, fullName);                  
@@ -102,25 +129,34 @@ public class ClientHandler implements Runnable {
                     boolean success = userDAO.insertUser(newUser);
                     
                     if (success) {
-                        // ĐĂNG KÝ THÀNH CÔNG                 
-                        // Cập nhật trạng thái thành "online"
                         userDAO.updateUserStatus(regUsername, "online"); 
                         // Lấy thông tin user vừa tạo
                         Users registeredUser = userDAO.getUserByUsername(regUsername);
-                        System.out.println("Đăng ký thành công: " + regUsername);        
+                        
+                        // Lưu userId và username
+                        nguoiChoiID = registeredUser.getUserId();
+                        tenNguoiChoi = registeredUser.getUsername();
+                        
+                        // Thêm vào Map
+                        Server.getUserHandlers().put(nguoiChoiID, this);
+                        
+                        System.out.println("Đăng ký thành công: " + regUsername + " UserID: " + nguoiChoiID);        
                         // GỬI OBJECT USER về Client
-                        out.writeObject(new Message(Protocol.REGISTER_SUCCESS, registeredUser));
+                        sendToThisClient(new Message(Protocol.REGISTER_SUCCESS, registeredUser));
                     } else {
                         System.out.println("Đăng ký thất bại: Lỗi database - " + regUsername);
-                        out.writeObject(new Message(Protocol.REGISTER_FAILURE, "Lỗi server, vui lòng thử lại!"));
+                        sendToThisClient(new Message(Protocol.REGISTER_FAILURE, "Lỗi server, vui lòng thử lại!"));
                     }
                 }
-                out.flush();
                 break;
             
             case Protocol.LOGOUT:
                 String usernameLogout = (String) msg.getContent();
                 userDAO.updateUserStatus(usernameLogout, "offline");
+                // Xóa khỏi Map
+                if (nguoiChoiID != -1) {
+                    Server.getUserHandlers().remove(nguoiChoiID);
+                }
                 System.out.println(usernameLogout + " đã đăng xuất!");
                 socket.close(); // Đóng kết nối với client này
                 break;
@@ -128,22 +164,19 @@ public class ClientHandler implements Runnable {
             case Protocol.GET_PLAYER_LIST:
                 System.out.println("Client yêu cầu danh sách người chơi");
                 List<Users> onlinePlayers = userDAO.getOnlinePlayersFromView();
-                out.writeObject(new Message(Protocol.PLAYER_LIST, onlinePlayers));
-                out.flush();
+                sendToThisClient(new Message(Protocol.PLAYER_LIST, onlinePlayers));
                 System.out.println("Đã gửi danh sách: " + onlinePlayers.size() + " người chơi");
                 break;
             case Protocol.GET_LEADERBOARD_POINTS:
                 System.out.println("Client yêu cầu leaderboard theo điểm");
                 List<Users> lbPoints = userDAO.getLeaderboardByPoints();
-                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, lbPoints));
-                out.flush();
+                sendToThisClient(new Message(Protocol.LEADERBOARD_DATA, lbPoints));
                 System.out.println("Đã gửi leaderboard (points): " + (lbPoints != null ? lbPoints.size() : 0));
                 break;
             case Protocol.GET_LEADERBOARD_WINS:
                 System.out.println("Client yêu cầu leaderboard theo thắng");
                 List<Users> lbWins = userDAO.getLeaderboardByWins();
-                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, lbWins));
-                out.flush();
+                sendToThisClient(new Message(Protocol.LEADERBOARD_DATA, lbWins));
                 System.out.println("Đã gửi leaderboard (wins): " + (lbWins != null ? lbWins.size() : 0));
                 break;
             case Protocol.SEARCH_PLAYER_IN_LOBBY:
@@ -156,8 +189,7 @@ public class ClientHandler implements Runnable {
                 } else {
                     System.out.println("Tìm thấy " + foundListLobby.size() + " người chơi khớp với: " + findUsernameLobby);
                 }
-                out.writeObject(new Message(Protocol.SEARCH_RESULT_LOBBY, foundListLobby));
-                out.flush();
+                sendToThisClient(new Message(Protocol.SEARCH_RESULT_LOBBY, foundListLobby));
                 break;
             case Protocol.SEARCH_PLAYER_IN_LEADERBOARD:
                 System.out.println("Client yêu cầu tìm user (Tab 3 - Leaderboard): " + msg.getContent());
@@ -168,8 +200,7 @@ public class ClientHandler implements Runnable {
                 } else {
                     System.out.println("Tìm thấy " + foundListLeaderboard.size() + " người chơi khớp với: " + findUsernameLeaderboard);
                 }
-                out.writeObject(new Message(Protocol.SEARCH_RESULT_LEADERBOARD, foundListLeaderboard));
-                out.flush();
+                sendToThisClient(new Message(Protocol.SEARCH_RESULT_LEADERBOARD, foundListLeaderboard));
                 break;
             case Protocol.SEARCH_PLAYER:
                 System.out.println("Client yêu cầu tìm user: " + msg.getContent());
@@ -181,8 +212,82 @@ public class ClientHandler implements Runnable {
                 } else {
                     System.out.println("Tìm thấy " + foundList.size() + " người chơi khớp với: " + findUsername);
                 }
-                out.writeObject(new Message(Protocol.LEADERBOARD_DATA, foundList));
-                out.flush();
+                sendToThisClient(new Message(Protocol.LEADERBOARD_DATA, foundList));
+                break;
+                
+            case Protocol.CHALLENGE_REQUEST:
+                // Client A mời client B đấu
+                int doiThuID = Integer.parseInt((String) msg.getContent());
+                System.out.println("User " + nguoiChoiID + " mời user " + doiThuID + " đấu");
+                
+                // Tìm ClientHandler của opponent
+                ClientHandler doiThuHandler = Server.getUserHandlers().get(doiThuID);
+                
+                // Kiểm tra opponent có online không
+                if (doiThuHandler == null) {
+                    System.out.println("User " + doiThuID + " không online!");
+                    sendToThisClient(new Message(Protocol.CHALLENGE_FAILED, "Người chơi không online!"));
+                } else {
+                    // Gửi lời mời cho opponent (kèm userId và username của người mời)
+                    String nguoiMoiInfo = nguoiChoiID + ":" + tenNguoiChoi;
+                    doiThuHandler.sendMessage(new Message(Protocol.CHALLENGE_INVITATION, nguoiMoiInfo));
+                    System.out.println("Đã gửi lời mời đấu đến user " + doiThuID);
+                }
+                break;
+                
+            case Protocol.CHALLENGE_ACCEPT:
+                // Người nhận chấp nhận lời mời
+                int nguoiMoiID = Integer.parseInt((String) msg.getContent());
+                System.out.println("User " + nguoiChoiID + " chấp nhận lời mời từ user " + nguoiMoiID);  
+                // Tìm ClientHandler của inviter
+                ClientHandler nguoiMoiHandler = Server.getUserHandlers().get(nguoiMoiID);
+                
+                if (nguoiMoiHandler != null) {
+                    // CẬP NHẬT TRẠNG THÁI 'PLAYING' CHO CẢ 2 NGƯỜI
+                    userDAO.updateUserStatus(nguoiMoiHandler.tenNguoiChoi, "playing");
+                    userDAO.updateUserStatus(tenNguoiChoi, "playing");
+                    System.out.println("✅ Đã update status 'playing' cho user " + nguoiMoiID + " và " + nguoiChoiID);
+                    
+                    // Gửi thông báo chấp nhận cho cả 2
+                    String nguoiChapNhanInfo = nguoiChoiID + ":" + tenNguoiChoi;
+                    nguoiMoiHandler.sendMessage(new Message(Protocol.CHALLENGE_ACCEPTED, nguoiChapNhanInfo));
+                    System.out.println("Đã thông báo chấp nhận đến user " + nguoiMoiID);
+
+                    String nguoiMoiInfo = nguoiMoiID + ":" + nguoiMoiHandler.tenNguoiChoi;
+                    sendToThisClient(new Message(Protocol.CHALLENGE_ACCEPTED, nguoiMoiInfo));
+                    System.out.println("Đã thông báo chấp nhận đến user " + nguoiChoiID + " (accepter)");
+                    
+                    // TODO: Tạo game room cho 2 người chơi (implement sau)
+                }
+                break;
+            // Người nhận từ chối lời mời    
+            case Protocol.CHALLENGE_REJECT:
+                int nguoiMoiIDReject = Integer.parseInt((String) msg.getContent());
+                System.out.println("User " + nguoiChoiID + " từ chối lời mời từ user " + nguoiMoiIDReject);
+                // Tìm ClientHandler của inviter
+                ClientHandler nguoiMoiHandlerReject = Server.getUserHandlers().get(nguoiMoiIDReject);
+                
+                if (nguoiMoiHandlerReject != null) {
+                    // Gửi thông báo từ chối cho inviter
+                    String nguoiTuChoiInfo = nguoiChoiID + ":" + tenNguoiChoi;
+                    nguoiMoiHandlerReject.sendMessage(new Message(Protocol.CHALLENGE_REJECTED, nguoiTuChoiInfo));
+                    System.out.println("Đã thông báo từ chối đến user " + nguoiMoiIDReject);
+                }
+                break;
+            // Người mời hủy lời mời    
+            case Protocol.CHALLENGE_CANCEL:
+                int doiThuIDCancel = Integer.parseInt((String) msg.getContent());
+                System.out.println("User " + nguoiChoiID + " hủy lời mời đấu với user " + doiThuIDCancel);
+                
+                // Tìm ClientHandler của opponent
+                ClientHandler doiThuHandlerCancel = Server.getUserHandlers().get(doiThuIDCancel);
+                
+                if (doiThuHandlerCancel != null) {
+                    // Gửi thông báo hủy cho opponent
+                    String nguoiHuyInfo = nguoiChoiID + ":" + tenNguoiChoi;
+                    doiThuHandlerCancel.sendMessage(new Message(Protocol.CHALLENGE_CANCELLED, nguoiHuyInfo));
+                    System.out.println("Đã thông báo hủy đến user " + doiThuIDCancel);
+                }
                 break;
             case Protocol.GET_MATCH_HISTORY:
                 System.out.println("Client yêu cầu lịch sử trận đấu: " + msg.getContent());
@@ -249,4 +354,6 @@ public class ClientHandler implements Runnable {
                 break;
         }
     }
+    
+
 }

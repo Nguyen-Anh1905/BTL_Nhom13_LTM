@@ -2,6 +2,7 @@ package Client.controller;
 
 import Client.Client;
 import Client.MessageHandler;
+import common.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
@@ -47,7 +48,15 @@ import java.util.List;
 public class LobbyController implements Initializable {
     
     private Client client;
-    private Users currentUser;
+    private Users nguoiChoi; // currentUser
+    private WaitingDialogController waitingDialogController;
+    private Stage waitingDialogStage;
+    private InviteDialogController inviteDialogController;
+    private Stage inviteDialogStage;
+    
+    // Lưu thông tin đối thủ khi challenge
+    private String tenDoiThu;
+    private int idDoiThu;
     
     @FXML
     private Label lblWelcome;  // "Xin chào, [username]"
@@ -136,6 +145,12 @@ public class LobbyController implements Initializable {
     @FXML
     private Label lblSearchResult;
     
+    // Method để nhận client từ LoginController/RegisterController
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         System.out.println("Lobby Controller đã khởi tạo!");
@@ -200,7 +215,12 @@ public class LobbyController implements Initializable {
                 
                 btnChallenge.setOnAction(event -> {
                     Users selectedUser = getTableView().getItems().get(getIndex());
-                    handleChallenge(selectedUser);
+                    try {
+                        handleChallenge(selectedUser);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Lỗi khi mở dialog: " + e.getMessage());
+                    }
                 });
                 
                 btnChat.setOnAction(event -> {
@@ -217,7 +237,7 @@ public class LobbyController implements Initializable {
                 } else {
                     Users user = getTableView().getItems().get(getIndex());
                     // Không hiển thị nút cho chính mình
-                    if (currentUser != null && user.getUserId() == currentUser.getUserId()) {
+                    if (nguoiChoi != null && user.getUserId() == nguoiChoi.getUserId()) {
                         setGraphic(null);
                     } else {
                         setGraphic(hbox);
@@ -260,7 +280,7 @@ public class LobbyController implements Initializable {
     
     // Nhận thông tin user từ LoginController/RegisterController
     public void setCurrentUser(Users user) {
-        this.currentUser = user;
+        this.nguoiChoi = user;
         
         // Hiển thị thông tin lên UI
         if (lblWelcome != null) {
@@ -284,36 +304,24 @@ public class LobbyController implements Initializable {
         
         System.out.println("Thông tin user đã được cập nhật: " + user.getUsername());
     }
-    
+    // Xử lý nút Đăng xuất
     @FXML
     private void handleLogout(ActionEvent event) {
         System.out.println("Đăng xuất");
-        
-        // Gửi message LOGOUT lên server
-        client.sendMessage(new common.Message(common.Protocol.LOGOUT, currentUser.getUsername()));
-
+        client.sendMessage(new Message(Protocol.LOGOUT, nguoiChoi.getUsername()));
         // Quay về màn hình Login và TẠO LẠI CLIENT
         try {
             Stage stage = (Stage) lblWelcome.getScene().getWindow();
-            
             // Tạo lại MessageHandler và Client mới
             MessageHandler newHandler = new MessageHandler();
             Client newClient = new Client("localhost", 9999, newHandler);
-            newHandler.setClient(newClient);
-            
-            // Gọi method showLoginUI có sẵn trong Client
+            newHandler.setClient(newClient); 
             newClient.showLoginUI(stage);
-            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
-    // Method để nhận client từ LoginController/RegisterController
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
     // Cập nhật danh sách người chơi (gọi từ MessageHandler)
     public void updatePlayerList(List<Users> onlinePlayers) {
         if (onlinePlayers == null) {
@@ -340,14 +348,14 @@ public class LobbyController implements Initializable {
     private void handleSortByPoints(ActionEvent event) {
         System.out.println("Sắp xếp theo điểm");
         // Gửi yêu cầu lấy bảng xếp hạng theo điểm
-        client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
+        client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
     }
     
     @FXML
     private void handleSortByWins(ActionEvent event) {
         System.out.println("Sắp xếp theo thắng");
         // Gửi yêu cầu lấy bảng xếp hạng theo số trận thắng
-        client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_WINS, null));
+        client.sendMessage(new Message(Protocol.GET_LEADERBOARD_WINS, null));
     }
 
     @FXML
@@ -360,13 +368,13 @@ public class LobbyController implements Initializable {
             return;
         }
         System.out.println("Gửi yêu cầu tìm user: " + q);
-        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER_IN_LEADERBOARD, q.trim()));
+        client.sendMessage(new Message(Protocol.SEARCH_PLAYER_IN_LEADERBOARD, q.trim()));
     }
 
     @FXML
     private void handleReloadPlayers(ActionEvent event) {
         System.out.println("Reload players list");
-        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
+        if (client != null) client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
     }
 
     @FXML
@@ -378,7 +386,7 @@ public class LobbyController implements Initializable {
             return;
         }
         System.out.println("Gửi yêu cầu tìm user (players tab): " + q);
-        client.sendMessage(new common.Message(common.Protocol.SEARCH_PLAYER_IN_LOBBY, q.trim()));
+        client.sendMessage(new Message(Protocol.SEARCH_PLAYER_IN_LOBBY, q.trim()));
     }
 
     @FXML
@@ -654,7 +662,7 @@ public class LobbyController implements Initializable {
     @FXML
     private void handleReloadLeaderboard(ActionEvent event) {
         System.out.println("Reload leaderboard (by points)");
-        if (client != null) client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
+        if (client != null) client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
     }
     
     // Cập nhật bảng xếp hạng
@@ -673,12 +681,41 @@ public class LobbyController implements Initializable {
             }
         }
     }
-    
+//--------------------------------------------------------------------------------------------------------------------    
     // Xử lý khi click nút "Mời đấu"
-    private void handleChallenge(Users opponent) {
-        System.out.println("Mời đấu với: " + opponent.getUsername());
-        // TODO: Gửi lời mời đấu lên server
-        // client.sendMessage(new Message(Protocol.CHALLENGE_REQUEST, opponent.getUserId()));
+    private void handleChallenge(Users opponent) throws IOException {
+        // Lưu thông tin đối thủ
+        tenDoiThu = opponent.getUsername();
+        idDoiThu = opponent.getUserId();
+        
+        // 1. Gửi CHALLENGE_REQUEST lên server
+        System.out.println("Gửi CHALLENGE_REQUEST lên server...");
+        client.sendMessage(new Message(Protocol.CHALLENGE_REQUEST, String.valueOf(opponent.getUserId())));
+        
+        // 2. Load WaitingDialog FXML
+        System.out.println("Đang load WaitingDialog.fxml...");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/WaitingDialog.fxml"));
+        Parent root = loader.load();
+        System.out.println("Load FXML thành công!");
+        
+        // 3. Lấy controller và setup
+        waitingDialogController = loader.getController();
+        System.out.println("Lấy controller: " + waitingDialogController);
+        waitingDialogController.setClient(client);
+        waitingDialogController.setOpponent(opponent.getUsername(), opponent.getUserId());
+        
+        // 4. Tạo stage cho dialog
+        waitingDialogStage = new Stage();
+        waitingDialogStage.initModality(Modality.APPLICATION_MODAL);
+        waitingDialogStage.setTitle("Đang chờ phản hồi...");
+        waitingDialogStage.setScene(new Scene(root));
+        waitingDialogStage.setResizable(false);
+        
+        // 5. Set dialog stage vào controller
+        waitingDialogController.setDialogStage(waitingDialogStage);
+        
+        // 6. Hiển thị dialog (countdown tự động chạy trong initialize)
+        waitingDialogStage.show();
     }
     
     // Xử lý khi click nút "Chat"
@@ -686,4 +723,117 @@ public class LobbyController implements Initializable {
         System.out.println("Mở chat với: " + user.getUsername());
         // TODO: Mở cửa sổ chat với user này
     }
+    
+    // ==================== CHALLENGE METHODS ====================
+    
+    // Hiển thị InviteDialog khi nhận lời mời
+    public void showInviteDialog(int inviterUserId, String inviterUsername) {
+        try {
+            // Lưu thông tin người mời (đối thủ của người được mời)
+            tenDoiThu = inviterUsername;
+            idDoiThu = inviterUserId;
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/InviteDialog.fxml"));
+            Parent root = loader.load();
+            
+            inviteDialogController = loader.getController();
+            inviteDialogController.setClient(client);
+            inviteDialogController.setInviter(inviterUsername, inviterUserId);
+            
+            inviteDialogStage = new Stage();
+            inviteDialogStage.initModality(Modality.APPLICATION_MODAL);
+            inviteDialogStage.setTitle("Lời mời đấu");
+            inviteDialogStage.setScene(new Scene(root));
+            inviteDialogStage.setResizable(false);
+            
+            inviteDialogController.setDialogStage(inviteDialogStage);
+            
+            // Hiển thị dialog (countdown tự động chạy trong initialize)
+            inviteDialogStage.show();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Đóng WaitingDialog và chuyển sang game (khi challenge accepted)
+    public void onChallengeAccepted(int accepterUserId, String accepterUsername) {
+        if (waitingDialogStage != null && waitingDialogStage.isShowing()) {
+            waitingDialogStage.close();
+        }
+        if (inviteDialogStage != null && inviteDialogStage.isShowing()) {
+            inviteDialogStage.close();
+        }      
+        System.out.println(accepterUsername + " đã chấp nhận! Bắt đầu game...");
+        // Chuyển sang màn hình GameRoom với đối thủ đã lưu
+        try {
+            showGameRoom(tenDoiThu);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Lỗi khi mở GameRoom: " + e.getMessage());
+        }
+    }
+    // Hiển thị GameRoom
+    private void showGameRoom(String opponentUsername) throws IOException {
+        // Load GameRoom FXML
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/GameRoom.fxml"));
+        Parent root = loader.load();
+        
+        // Lấy controller và setup
+        GameRoomController gameRoomController = loader.getController();
+        gameRoomController.setClient(client);
+        gameRoomController.setCurrentUser(nguoiChoi);
+        gameRoomController.setOpponent(opponentUsername);
+        
+        // Lấy stage hiện tại (Lobby stage)
+        Stage lobbyStage = (Stage) lblWelcome.getScene().getWindow();
+        
+        // Truyền lobby stage vào GameRoom để có thể quay lại
+        gameRoomController.setLobbyStage(lobbyStage);
+        
+        // Ẩn Lobby stage
+        lobbyStage.hide();
+        
+        // Tạo stage mới cho GameRoom
+        Stage gameStage = new Stage();
+        gameStage.setTitle("Game Room - VS " + opponentUsername);
+        gameStage.setScene(new Scene(root));
+        gameStage.setResizable(false);
+        
+        // Khi đóng GameRoom, hiện lại Lobby
+        gameStage.setOnCloseRequest(event -> {
+            lobbyStage.show();
+        });
+        
+        // Hiển thị GameRoom
+        gameStage.show();
+        
+        System.out.println("Đã mở GameRoom với đối thủ: " + opponentUsername);
+    }
+    
+    // Đóng WaitingDialog và hiện thông báo (khi challenge rejected)
+    public void onChallengeRejected(String rejecterUsername) {
+        if (waitingDialogStage != null && waitingDialogStage.isShowing()) {
+            waitingDialogStage.close();
+        }       
+        System.out.println(rejecterUsername + " đã từ chối!");
+    }
+    
+    // Đóng InviteDialog (khi người mời cancel)
+    public void onChallengeCancelled(String cancellerUsername) {
+        // Đóng InviteDialog nếu đang mở
+        if (inviteDialogStage != null && inviteDialogStage.isShowing()) {
+            inviteDialogStage.close();
+        }
+        System.out.println(cancellerUsername + " đã hủy lời mời!");
+    }
+    
+    // Xử lý khi challenge failed (user offline, etc.)
+    public void onChallengeFailed(String errorMessage) {
+        System.out.println("Challenge failed: " + errorMessage);
+    }
+
+//----------------------------------------------------------------------------------------------------
+
 }
+

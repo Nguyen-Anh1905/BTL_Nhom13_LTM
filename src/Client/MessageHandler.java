@@ -123,7 +123,78 @@ public class MessageHandler {
                 List<Server.dto.MatchDetailResponse> details = (List<Server.dto.MatchDetailResponse>) msg.getContent();
                 if (lobbyController != null) Platform.runLater(() -> lobbyController.showMatchDetail(details));
                 break;
-
+                
+            case Protocol.CHALLENGE_INVITATION:
+                // Nhận lời mời đấu từ user khác
+                System.out.println("Nhận được CHALLENGE_INVITATION");
+                String inviterInfo = (String) msg.getContent();
+                String[] inviterParts = inviterInfo.split(":");
+                int inviterUserId = Integer.parseInt(inviterParts[0]);
+                String inviterUsername = inviterParts[1];
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.showInviteDialog(inviterUserId, inviterUsername);
+                    });
+                }
+                break;
+                
+            case Protocol.CHALLENGE_ACCEPTED:
+                // Người nhận chấp nhận lời mời
+                System.out.println("Nhận được CHALLENGE_ACCEPTED");
+                String accepterInfo = (String) msg.getContent();
+                String[] accepterParts = accepterInfo.split(":");
+                int accepterUserId = Integer.parseInt(accepterParts[0]);
+                String accepterUsername = accepterParts[1];
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.onChallengeAccepted(accepterUserId, accepterUsername);
+                    });
+                }
+                break;
+                
+            case Protocol.CHALLENGE_REJECTED:
+                // Người nhận từ chối lời mời
+                System.out.println("Nhận được CHALLENGE_REJECTED");
+                String rejecterInfo = (String) msg.getContent();
+                String[] rejecterParts = rejecterInfo.split(":");
+                String rejecterUsername = rejecterParts[1];
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.onChallengeRejected(rejecterUsername);
+                    });
+                }
+                break;
+                
+            case Protocol.CHALLENGE_CANCELLED:
+                // Người mời hủy lời mời
+                System.out.println("Nhận được CHALLENGE_CANCELLED");
+                String cancellerInfo = (String) msg.getContent();
+                String[] cancellerParts = cancellerInfo.split(":");
+                String cancellerUsername = cancellerParts[1];
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.onChallengeCancelled(cancellerUsername);
+                    });
+                }
+                break;
+                
+            case Protocol.CHALLENGE_FAILED:
+                // Lời mời thất bại (user offline, etc.)
+                System.out.println("Nhận được CHALLENGE_FAILED");
+                String errorMessage = (String) msg.getContent();
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.onChallengeFailed(errorMessage);
+                    });
+                }
+                break;
+                
+            // Xử lý các loại message khác nếu cần
             default:
                 System.out.println("Unhandled message type: " + msg.getType());
                 break;
