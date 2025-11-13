@@ -18,6 +18,10 @@ public class Protocol {
     public static final String CHALLENGE_REJECT = "challenge reject";       // Client → Server: B từ chối
     public static final String CHALLENGE_CANCEL = "challenge cancel";       // Client → Server: A hủy lời mời
     public static final String CHALLENGE_TIMEOUT = "challenge timeout";     // Client → Server: Hết thời gian
+    public static final String GET_MATCH_HISTORY = "get match history";
+    public static final String MATCH_HISTORY_DATA = "match history data";
+    public static final String GET_MATCH_DETAIL = "get match detail";
+    public static final String MATCH_DETAIL_DATA = "match detail data";
 
     
     // Server → Client

@@ -139,3 +139,21 @@
     -fx-border-color: #BDBDBD;
     -fx-padding: 6 8 6 8;
 }
+
+/* Styles for match detail popup */
+.title-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #212121;
+}
+
+.detail-count {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1976D2;
+}
+
+.table-view .column-header {
+    -fx-background-color: linear-gradient(#2196F3, #1976D2);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}

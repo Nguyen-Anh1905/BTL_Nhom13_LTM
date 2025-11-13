@@ -6,6 +6,11 @@ import java.net.*;
 import java.util.*;
 import Server.DAO.*;
 import Server.model.*;
+import Server.service.MatchHistoryService;
+import Server.dto.MatchHistoryResponse;
+import Server.service.MatchDetailService;
+import Server.DAO.MatchesDAO;
+import Server.dto.MatchDetailResponse;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -17,6 +22,7 @@ public class ClientHandler implements Runnable {
     private UserDAO userDAO = new UserDAO();
     private int nguoiChoiID = -1;  // ID của user đang kết nối
     private String tenNguoiChoi = null;  // Username của user đang kết nối
+    private MatchHistoryService matchHistoryService = new MatchHistoryService();
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -281,6 +287,69 @@ public class ClientHandler implements Runnable {
                     String nguoiHuyInfo = nguoiChoiID + ":" + tenNguoiChoi;
                     doiThuHandlerCancel.sendMessage(new Message(Protocol.CHALLENGE_CANCELLED, nguoiHuyInfo));
                     System.out.println("Đã thông báo hủy đến user " + doiThuIDCancel);
+                }
+                break;
+            case Protocol.GET_MATCH_HISTORY:
+                System.out.println("Client yêu cầu lịch sử trận đấu: " + msg.getContent());
+                String raw = (String) msg.getContent();
+                String reqUser = null;
+                String opponentFilter = null;
+                if (raw != null && raw.contains(":")) {
+                    String[] p = raw.split(":", 2);
+                    reqUser = p[0];
+                    opponentFilter = p[1];
+                } else {
+                    reqUser = raw;
+                }
+                List<MatchHistoryResponse> hist;
+                if (opponentFilter != null && !opponentFilter.trim().isEmpty()) {
+                    hist = matchHistoryService.getMatchHistoryForUser(reqUser, opponentFilter);
+                } else {
+                    hist = matchHistoryService.getMatchHistoryForUser(reqUser);
+                }
+                if (hist == null || hist.isEmpty()) {
+                    System.out.println("Không có lịch sử trận đấu cho: " + reqUser + (opponentFilter != null ? (" với " + opponentFilter) : ""));
+                } else {
+                    System.out.println("Trả về " + hist.size() + " bản ghi lịch sử cho: " + reqUser + (opponentFilter != null ? (" với " + opponentFilter) : ""));
+                }
+                out.writeObject(new Message(Protocol.MATCH_HISTORY_DATA, hist));
+                out.flush();
+                break;
+            case Protocol.GET_MATCH_DETAIL:
+                System.out.println("Client yêu cầu chi tiết trận: " + msg.getContent());
+                String rawDetail = (String) msg.getContent();
+                // expected payload: "matchId:username"
+                if (rawDetail != null && rawDetail.contains(":")) {
+                    String[] partsDetail = rawDetail.split(":", 2);
+                    try {
+                        int matchId = Integer.parseInt(partsDetail[0]);
+                        String usernameReq = partsDetail[1];
+
+                        // determine whether username is player1 or player2
+                        MatchesDAO matchesDAO = new MatchesDAO();
+                        Matches match = matchesDAO.findById(matchId);
+                        String youSide = "player1"; // default
+                        if (match != null) {
+                            UserDAO udao = new UserDAO();
+                            try {
+                                int uid = udao.getUserByUsername(usernameReq).getUserId();
+                                if (uid == match.getPlayer2Id()) youSide = "player2";
+                            } catch (Exception ex) {
+                                // cannot resolve user, default to player1
+                            }
+                        }
+
+                        MatchDetailService detailService = new MatchDetailService();
+                        List<MatchDetailResponse> detailsResp = detailService.getMatchDetails(matchId, youSide, null);
+                        out.writeObject(new Message(Protocol.MATCH_DETAIL_DATA, detailsResp));
+                        out.flush();
+                    } catch (NumberFormatException nfe) {
+                        out.writeObject(new Message(Protocol.MATCH_DETAIL_DATA, new ArrayList<>()));
+                        out.flush();
+                    }
+                } else {
+                    out.writeObject(new Message(Protocol.MATCH_DETAIL_DATA, new ArrayList<>()));
+                    out.flush();
                 }
                 break;
         }

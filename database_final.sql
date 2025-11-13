@@ -1,288 +1,300 @@
--- ========================================
--- DATABASE SCHEMA TỐI ƯU - GAME ĐẤU TỪ
--- 5 BẢNG: users, dictionary, matches, match_details, match_words
--- ========================================
+-- MySQL dump 10.13  Distrib 8.0.38, for Win64 (x86_64)
+--
+-- Host: localhost    Database: gamevtv
+-- ------------------------------------------------------
+-- Server version	8.0.39
 
-CREATE DATABASE IF NOT EXISTS gamevtv 
-CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
+CREATE DATABASE IF NOT EXISTS gamevtv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE gamevtv;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- ========================================
--- 1. BẢNG USERS - Quản lý người chơi
--- ========================================
-CREATE TABLE users (
-    user_id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL COMMENT 'Nên hash bằng BCrypt',
-    full_name VARCHAR(100) NOT NULL,
-    
-    -- Trạng thái hiện tại
-    status ENUM('online', 'offline', 'playing') DEFAULT 'offline',
-    
-    -- Thống kê cho bảng xếp hạng
-    total_points INT DEFAULT 0 COMMENT 'Thắng: +2, Hòa: +1, Thua: +0',
-    total_wins INT DEFAULT 0,
-    total_draws INT DEFAULT 0,
-    total_losses INT DEFAULT 0,
-    
-    -- Thời gian
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_username (username),
-    INDEX idx_total_points (total_points DESC),
-    INDEX idx_total_wins (total_wins DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Quản lý tài khoản và thống kê người chơi';
+--
+-- Table structure for table `dictionary`
+--
 
--- ========================================
--- 2. BẢNG DICTIONARY - Từ điển
--- ========================================
-CREATE TABLE dictionary (
-    word_id INT PRIMARY KEY AUTO_INCREMENT,
-    word VARCHAR(50) NOT NULL COMMENT 'Từ tiếng Việt có dấu, viết HOA',
-    word_length INT NOT NULL COMMENT 'Số chữ cái của từ',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE KEY unique_word (word),
-    INDEX idx_word_length (word_length)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Từ điển tiếng Việt để kiểm tra từ hợp lệ';
+DROP TABLE IF EXISTS `dictionary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dictionary` (
+  `word_id` int NOT NULL AUTO_INCREMENT,
+  `word` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Từ tiếng Việt có dấu, viết HOA',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `letter_id` int DEFAULT NULL,
+  `meaning` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`word_id`),
+  UNIQUE KEY `unique_word` (`word`),
+  KEY `fk_diction_letter` (`letter_id`),
+  CONSTRAINT `fk_diction_letter` FOREIGN KEY (`letter_id`) REFERENCES `letters` (`letter_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Từ điển tiếng Việt để kiểm tra từ hợp lệ';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ========================================
--- 3. BẢNG MATCHES - Quản lý trận đấu (TỔNG QUAN)
--- ========================================
-/*
-MỤC ĐÍCH:
-- Lưu thông tin TỔNG QUAN của trận đấu
-- Ai đấu với ai, ai thắng, kết quả gì
-- KHÔNG lưu chi tiết từng vòng (chi tiết ở bảng match_details)
+--
+-- Temporary view structure for view `leaderboard_by_points`
+--
 
-TẠI SAO THIẾT KẾ NÀY TỐT:
-- ✅ Tách biệt rõ ràng: TỔNG QUAN vs CHI TIẾT
-- ✅ Dễ query "lấy tất cả trận của user X"
-- ✅ Dễ mở rộng (muốn thêm info chung không ảnh hưởng chi tiết)
-*/
-CREATE TABLE matches (
-    match_id INT PRIMARY KEY AUTO_INCREMENT,
-    
-    -- Người chơi
-    player1_id INT NOT NULL COMMENT 'Người chơi 1',
-    player2_id INT NOT NULL COMMENT 'Người chơi 2',
-    
-    -- Trạng thái
-    match_status ENUM('waiting', 'playing', 'completed', 'cancelled') DEFAULT 'playing',
-    
-    -- Kết quả CHUNG
-    total_rounds INT DEFAULT 0 COMMENT 'Số vòng đã chơi (1, 2, hoặc 3)',
-    player1_rounds_won INT DEFAULT 0 COMMENT 'Số vòng player 1 thắng',
-    player2_rounds_won INT DEFAULT 0 COMMENT 'Số vòng player 2 thắng',
-    
-    winner_id INT COMMENT 'Người thắng trận (NULL nếu hòa)',
-    result ENUM('player1_win', 'player2_win', 'draw', 'cancelled') NULL,
-    
-    -- Thời gian
-    started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ended_at DATETIME,
-    
-    FOREIGN KEY (player1_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (player2_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (winner_id) REFERENCES users(user_id) ON DELETE SET NULL,
-    
-    INDEX idx_players (player1_id, player2_id),
-    INDEX idx_status (match_status),
-    INDEX idx_started (started_at DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Quản lý trận đấu - thông tin tổng quan';
+DROP TABLE IF EXISTS `leaderboard_by_points`;
+/*!50001 DROP VIEW IF EXISTS `leaderboard_by_points`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `leaderboard_by_points` AS SELECT 
+ 1 AS `user_id`,
+ 1 AS `username`,
+ 1 AS `full_name`,
+ 1 AS `total_points`,
+ 1 AS `total_wins`,
+ 1 AS `total_draws`,
+ 1 AS `total_losses`,
+ 1 AS `total_matches`*/;
+SET character_set_client = @saved_cs_client;
 
--- ========================================
--- 4. BẢNG MATCH_DETAILS - Chi tiết từng vòng đấu
--- ========================================
-/*
-MỤC ĐÍCH:
-- Lưu CHI TIẾT từng vòng đấu
-- Mỗi trận có 1-3 records trong bảng này (tùy số vòng chơi)
+--
+-- Temporary view structure for view `leaderboard_by_wins`
+--
 
-ƯU ĐIỂM:
-- ✅ Chuẩn database normalization
-- ✅ Dễ query "lấy vòng 1 của trận X"
-- ✅ Dễ mở rộng (muốn 5 vòng chỉ cần INSERT thêm)
-- ✅ Không lặp lại cột như round1_, round2_, round3_
+DROP TABLE IF EXISTS `leaderboard_by_wins`;
+/*!50001 DROP VIEW IF EXISTS `leaderboard_by_wins`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `leaderboard_by_wins` AS SELECT 
+ 1 AS `user_id`,
+ 1 AS `username`,
+ 1 AS `full_name`,
+ 1 AS `total_wins`,
+ 1 AS `total_points`,
+ 1 AS `total_draws`,
+ 1 AS `total_losses`,
+ 1 AS `total_matches`*/;
+SET character_set_client = @saved_cs_client;
 
-VÍ DỤ:
-Trận match_id=1 có 3 vòng → 3 records:
-- detail_id=1: match_id=1, round_number=1, letters="Á,B,Đ,G,N"
-- detail_id=2: match_id=1, round_number=2, letters="C,H,Ó,Ồ,M"
-- detail_id=3: match_id=1, round_number=3, letters="X,Y,Z,K,L"
-*/
-CREATE TABLE match_details (
-    detail_id INT PRIMARY KEY AUTO_INCREMENT,
-    match_id INT NOT NULL,
-    round_number INT NOT NULL COMMENT 'Vòng 1, 2, hoặc 3',
+--
+-- Table structure for table `letters`
+--
+
+DROP TABLE IF EXISTS `letters`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `letters` (
+  `letter_id` int NOT NULL AUTO_INCREMENT,
+  `letter_detail` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `length_word` int DEFAULT NULL,
+  `time_round` int DEFAULT NULL,
+  PRIMARY KEY (`letter_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `match_details`
+--
+
+DROP TABLE IF EXISTS `match_details`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `match_details` (
+  `detail_id` int NOT NULL AUTO_INCREMENT,
+  `match_id` int NOT NULL,
+  `round_number` int NOT NULL COMMENT 'Vòng 1, 2, hoặc 3',
+  `letter_id` int DEFAULT NULL,
+  `player1_words_count` int DEFAULT '0' COMMENT 'Số từ đúng của player 1',
+  `player2_words_count` int DEFAULT '0' COMMENT 'Số từ đúng của player 2',
+  `winner_id` int DEFAULT NULL COMMENT 'Người thắng vòng này (NULL nếu hòa)',
+  `round_status` enum('waiting','playing','completed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'waiting',
+  `started_at` datetime DEFAULT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`detail_id`),
+  UNIQUE KEY `unique_match_round` (`match_id`,`round_number`),
+  KEY `winner_id` (`winner_id`),
+  KEY `idx_match_id` (`match_id`),
+  KEY `idx_round_number` (`round_number`),
+  KEY `fk_match_letter` (`letter_id`),
+  CONSTRAINT `fk_match_letter` FOREIGN KEY (`letter_id`) REFERENCES `letters` (`letter_id`),
+  CONSTRAINT `match_details_ibfk_1` FOREIGN KEY (`match_id`) REFERENCES `matches` (`match_id`) ON DELETE CASCADE,
+  CONSTRAINT `match_details_ibfk_2` FOREIGN KEY (`winner_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chi tiết từng vòng đấu trong trận';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Temporary view structure for view `match_history`
+--
+
+DROP TABLE IF EXISTS `match_history`;
+/*!50001 DROP VIEW IF EXISTS `match_history`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `match_history` AS SELECT 
+ 1 AS `match_id`,
+ 1 AS `player1_id`,
+ 1 AS `player1_name`,
+ 1 AS `player2_id`,
+ 1 AS `player2_name`,
+ 1 AS `total_rounds`,
+ 1 AS `player1_rounds_won`,
+ 1 AS `player2_rounds_won`,
+ 1 AS `winner_id`,
+ 1 AS `winner_name`,
+ 1 AS `result`,
+ 1 AS `started_at`,
+ 1 AS `ended_at`,
+ 1 AS `duration_minutes`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `matches`
+--
+
+DROP TABLE IF EXISTS `matches`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `matches` (
+  `match_id` int NOT NULL AUTO_INCREMENT,
+  `player1_id` int NOT NULL COMMENT 'Người chơi 1',
+  `player2_id` int NOT NULL COMMENT 'Người chơi 2',
+  `match_status` enum('waiting','playing','completed','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'playing',
+  `total_rounds` int DEFAULT '0' COMMENT 'Số vòng đã chơi (1, 2, hoặc 3)',
+  `player1_rounds_won` int DEFAULT '0' COMMENT 'Số vòng player 1 thắng',
+  `player2_rounds_won` int DEFAULT '0' COMMENT 'Số vòng player 2 thắng',
+  `winner_id` int DEFAULT NULL COMMENT 'Người thắng trận (NULL nếu hòa)',
+  `result` enum('player1_win','player2_win','draw','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `started_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ended_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`match_id`),
+  KEY `player2_id` (`player2_id`),
+  KEY `winner_id` (`winner_id`),
+  KEY `idx_players` (`player1_id`,`player2_id`),
+  KEY `idx_status` (`match_status`),
+  KEY `idx_started` (`started_at` DESC),
+  CONSTRAINT `matches_ibfk_1` FOREIGN KEY (`player1_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `matches_ibfk_2` FOREIGN KEY (`player2_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `matches_ibfk_3` FOREIGN KEY (`winner_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quản lý trận đấu - thông tin tổng quan';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Temporary view structure for view `online_players`
+--
+
+DROP TABLE IF EXISTS `online_players`;
+/*!50001 DROP VIEW IF EXISTS `online_players`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `online_players` AS SELECT 
+ 1 AS `user_id`,
+ 1 AS `username`,
+ 1 AS `full_name`,
+ 1 AS `status`,
+ 1 AS `total_points`,
+ 1 AS `total_wins`,
+ 1 AS `total_draws`,
+ 1 AS `total_losses`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `tmp`
+--
+
+DROP TABLE IF EXISTS `tmp`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tmp` (
+  `letter_id` int NOT NULL,
+  `match_id` int NOT NULL,
+  `detail_id` int NOT NULL COMMENT 'Chi tiết vòng đấu nào',
+  `user_id` int NOT NULL,
+  `word` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Từ người chơi ghép',
+  `is_valid` tinyint(1) NOT NULL COMMENT 'Từ có trong từ điển không',
+  `submitted_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`letter_id`),
+  KEY `detail_id` (`detail_id`),
+  KEY `idx_match_detail` (`match_id`,`detail_id`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `tmp_ibfk_1` FOREIGN KEY (`match_id`) REFERENCES `matches` (`match_id`) ON DELETE CASCADE,
+  CONSTRAINT `tmp_ibfk_2` FOREIGN KEY (`detail_id`) REFERENCES `match_details` (`detail_id`) ON DELETE CASCADE,
+  CONSTRAINT `tmp_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Từ đã ghép trong từng vòng đấu';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nên hash bằng BCrypt',
+  `full_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('online','offline','playing') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'offline',
+  `total_points` int DEFAULT '0' COMMENT 'Thắng: +2, Hòa: +1, Thua: +0',
+  `total_wins` int DEFAULT '0',
+  `total_draws` int DEFAULT '0',
+  `total_losses` int DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `idx_username` (`username`),
+  KEY `idx_total_points` (`total_points` DESC),
+  KEY `idx_total_wins` (`total_wins` DESC)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quản lý tài khoản và thống kê người chơi';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping events for database 'gamevtv'
+--
+
+--
+-- Dumping routines for database 'gamevtv'
+--
+/*!50003 DROP PROCEDURE IF EXISTS `CheckWord` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckWord`(
+    IN p_word VARCHAR(50),
+    OUT p_is_valid BOOLEAN
+)
+BEGIN
+    DECLARE v_count INT;
     
-    -- Cài đặt vòng đấu
-    letters VARCHAR(100) NOT NULL COMMENT 'Chữ cái cho vòng này, VD: Á,B,Đ,G,N,Ó',
-    word_length INT NOT NULL COMMENT 'Số chữ cái yêu cầu',
-    duration_seconds INT DEFAULT 60 COMMENT 'Thời gian (giây)',
+    SELECT COUNT(*) INTO v_count
+    FROM dictionary
+    WHERE word = UPPER(TRIM(p_word));
     
-    -- Kết quả vòng đấu
-    player1_words_count INT DEFAULT 0 COMMENT 'Số từ đúng của player 1',
-    player2_words_count INT DEFAULT 0 COMMENT 'Số từ đúng của player 2',
-    winner_id INT COMMENT 'Người thắng vòng này (NULL nếu hòa)',
-    
-    -- Trạng thái
-    round_status ENUM('waiting', 'playing', 'completed') DEFAULT 'waiting',
-    
-    -- Thời gian
-    started_at DATETIME,
-    ended_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (match_id) REFERENCES matches(match_id) ON DELETE CASCADE,
-    FOREIGN KEY (winner_id) REFERENCES users(user_id) ON DELETE SET NULL,
-    
-    -- Đảm bảo không trùng vòng trong 1 trận
-    UNIQUE KEY unique_match_round (match_id, round_number),
-    
-    INDEX idx_match_id (match_id),
-    INDEX idx_round_number (round_number)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Chi tiết từng vòng đấu trong trận';
-
--- ========================================
--- 5. BẢNG MATCH_WORDS - Từ đã ghép
--- ========================================
-/*
-MỤC ĐÍCH:
-- Lưu từng từ người chơi ghép
-- Hiển thị kết quả "những từ đã ghép đúng của đối thủ"
-*/
-CREATE TABLE match_words (
-    word_id INT PRIMARY KEY AUTO_INCREMENT,
-    match_id INT NOT NULL,
-    detail_id INT NOT NULL COMMENT 'Chi tiết vòng đấu nào',
-    user_id INT NOT NULL,
-    word VARCHAR(50) NOT NULL COMMENT 'Từ người chơi ghép',
-    is_valid BOOLEAN NOT NULL COMMENT 'Từ có trong từ điển không',
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (match_id) REFERENCES matches(match_id) ON DELETE CASCADE,
-    FOREIGN KEY (detail_id) REFERENCES match_details(detail_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    
-    INDEX idx_match_detail (match_id, detail_id),
-    INDEX idx_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Từ đã ghép trong từng vòng đấu';
-
--- ========================================
--- DỮ LIỆU MẪU
--- ========================================
-
--- User mẫu
-INSERT INTO users (username, password, full_name, total_points, total_wins, total_draws, total_losses) VALUES
-('player1', '123456', 'Nguyễn Văn A', 50, 5, 2, 3),
-('player2', '123456', 'Trần Thị B', 35, 3, 3, 4),
-('player3', '123456', 'Lê Văn C', 60, 6, 1, 2);
-
--- Từ điển mẫu
-INSERT INTO dictionary (word, word_length) VALUES
--- 2 chữ
-('BÀ', 2), ('CÁ', 2), ('ĐÁ', 2), ('GÀ', 2), ('HÓ', 2),
--- 3 chữ
-('BÀN', 3), ('HOA', 3), ('CÂY', 3), ('NHÀ', 3), ('MÁY', 3),
-('NÓN', 3), ('ĐÁM', 3), ('GẠO', 3),
--- 4 chữ
-('BÁNH', 4), ('CÁNH', 4), ('ĐÁNH', 4), ('GÁNH', 4), ('NÓNG', 4),
-('BÓNG', 4), ('ĐỒNG', 4), ('HỒNG', 4), ('NGANG', 4),
--- 5 chữ
-('NHÀNG', 5), ('CHỒNG', 5);
-
--- ========================================
--- VIEWS
--- ========================================
-
--- Bảng xếp hạng theo điểm
-CREATE OR REPLACE VIEW leaderboard_by_points AS
-SELECT 
-    user_id,
-    username,
-    full_name,
-    total_points,
-    total_wins,
-    total_draws,
-    total_losses,
-    (total_wins + total_draws + total_losses) as total_matches
-FROM users
-ORDER BY total_points DESC, total_wins DESC
-LIMIT 100;
-
--- Bảng xếp hạng theo số trận thắng
-CREATE OR REPLACE VIEW leaderboard_by_wins AS
-SELECT 
-    user_id,
-    username,
-    full_name,
-    total_wins,
-    total_points,
-    total_draws,
-    total_losses,
-    (total_wins + total_draws + total_losses) as total_matches
-FROM users
-ORDER BY total_wins DESC, total_points DESC
-LIMIT 100;
-
--- Danh sách người chơi online
-CREATE OR REPLACE VIEW online_players AS
-SELECT 
-    user_id,
-    username,
-    full_name,
-    status,
-    total_points,
-    total_wins,
-    total_draws,
-    total_losses
-FROM users
-WHERE status IN ('online', 'playing')
-ORDER BY total_points DESC;
-
--- Lịch sử trận đấu với thông tin chi tiết
-CREATE OR REPLACE VIEW match_history AS
-SELECT 
-    m.match_id,
-    m.player1_id,
-    u1.username as player1_name,
-    m.player2_id,
-    u2.username as player2_name,
-    m.total_rounds,
-    m.player1_rounds_won,
-    m.player2_rounds_won,
-    m.winner_id,
-    CASE 
-        WHEN m.winner_id = m.player1_id THEN u1.username
-        WHEN m.winner_id = m.player2_id THEN u2.username
-        ELSE 'Hòa'
-    END as winner_name,
-    m.result,
-    m.started_at,
-    m.ended_at,
-    TIMESTAMPDIFF(MINUTE, m.started_at, m.ended_at) as duration_minutes
-FROM matches m
-JOIN users u1 ON m.player1_id = u1.user_id
-JOIN users u2 ON m.player2_id = u2.user_id
-WHERE m.match_status = 'completed'
-ORDER BY m.ended_at DESC;
-
--- ========================================
--- STORED PROCEDURES
--- ========================================
-
--- 1. Tạo trận đấu mới
-DELIMITER //
-CREATE PROCEDURE CreateMatch(
+    SET p_is_valid = (v_count > 0);
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CreateMatch` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateMatch`(
     IN p_player1_id INT,
     IN p_player2_id INT,
     OUT p_match_id INT
@@ -297,12 +309,23 @@ BEGIN
     -- Đổi trạng thái 2 người sang 'playing'
     UPDATE users SET status = 'playing' 
     WHERE user_id IN (p_player1_id, p_player2_id);
-END //
+END ;;
 DELIMITER ;
-
--- 2. Tạo vòng đấu mới
-DELIMITER //
-CREATE PROCEDURE CreateRound(
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CreateRound` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateRound`(
     IN p_match_id INT,
     IN p_round_number INT,
     IN p_letters VARCHAR(100),
@@ -328,29 +351,94 @@ BEGIN
     );
     
     SET p_detail_id = LAST_INSERT_ID();
-END //
+END ;;
 DELIMITER ;
-
--- 3. Kiểm tra từ hợp lệ
-DELIMITER //
-CREATE PROCEDURE CheckWord(
-    IN p_word VARCHAR(50),
-    OUT p_is_valid BOOLEAN
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `FinishMatch` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FinishMatch`(
+    IN p_match_id INT
 )
 BEGIN
-    DECLARE v_count INT;
+    DECLARE v_player1_id INT;
+    DECLARE v_player2_id INT;
+    DECLARE v_player1_rounds INT;
+    DECLARE v_player2_rounds INT;
+    DECLARE v_winner_id INT;
+    DECLARE v_result VARCHAR(20);
     
-    SELECT COUNT(*) INTO v_count
-    FROM dictionary
-    WHERE word = UPPER(TRIM(p_word));
+    -- Lấy thông tin
+    SELECT player1_id, player2_id, player1_rounds_won, player2_rounds_won
+    INTO v_player1_id, v_player2_id, v_player1_rounds, v_player2_rounds
+    FROM matches WHERE match_id = p_match_id;
     
-    SET p_is_valid = (v_count > 0);
-END //
+    -- Xác định người thắng
+    IF v_player1_rounds > v_player2_rounds THEN
+        SET v_winner_id = v_player1_id;
+        SET v_result = 'player1_win';
+    ELSEIF v_player2_rounds > v_player1_rounds THEN
+        SET v_winner_id = v_player2_id;
+        SET v_result = 'player2_win';
+    ELSE
+        SET v_winner_id = NULL;
+        SET v_result = 'draw';
+    END IF;
+    
+    -- Cập nhật trận đấu
+    UPDATE matches
+    SET winner_id = v_winner_id,
+        result = v_result,
+        match_status = 'completed',
+        ended_at = NOW()
+    WHERE match_id = p_match_id;
+    
+    -- Cập nhật thống kê user
+    IF v_result = 'player1_win' THEN
+        UPDATE users SET total_wins = total_wins + 1, total_points = total_points + 2
+        WHERE user_id = v_player1_id;
+        UPDATE users SET total_losses = total_losses + 1
+        WHERE user_id = v_player2_id;
+    ELSEIF v_result = 'player2_win' THEN
+        UPDATE users SET total_wins = total_wins + 1, total_points = total_points + 2
+        WHERE user_id = v_player2_id;
+        UPDATE users SET total_losses = total_losses + 1
+        WHERE user_id = v_player1_id;
+    ELSE
+        UPDATE users SET total_draws = total_draws + 1, total_points = total_points + 1
+        WHERE user_id IN (v_player1_id, v_player2_id);
+    END IF;
+    
+    -- Đổi trạng thái về online
+    UPDATE users SET status = 'online'
+    WHERE user_id IN (v_player1_id, v_player2_id);
+END ;;
 DELIMITER ;
-
--- 4. Kết thúc vòng đấu
-DELIMITER //
-CREATE PROCEDURE FinishRound(
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `FinishRound` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FinishRound`(
     IN p_detail_id INT
 )
 BEGIN
@@ -419,118 +507,92 @@ BEGIN
         UPDATE matches SET player2_rounds_won = player2_rounds_won + 1
         WHERE match_id = v_match_id;
     END IF;
-END //
+END ;;
 DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
--- 5. Kết thúc trận đấu
-DELIMITER //
-CREATE PROCEDURE FinishMatch(
-    IN p_match_id INT
-)
-BEGIN
-    DECLARE v_player1_id INT;
-    DECLARE v_player2_id INT;
-    DECLARE v_player1_rounds INT;
-    DECLARE v_player2_rounds INT;
-    DECLARE v_winner_id INT;
-    DECLARE v_result VARCHAR(20);
-    
-    -- Lấy thông tin
-    SELECT player1_id, player2_id, player1_rounds_won, player2_rounds_won
-    INTO v_player1_id, v_player2_id, v_player1_rounds, v_player2_rounds
-    FROM matches WHERE match_id = p_match_id;
-    
-    -- Xác định người thắng
-    IF v_player1_rounds > v_player2_rounds THEN
-        SET v_winner_id = v_player1_id;
-        SET v_result = 'player1_win';
-    ELSEIF v_player2_rounds > v_player1_rounds THEN
-        SET v_winner_id = v_player2_id;
-        SET v_result = 'player2_win';
-    ELSE
-        SET v_winner_id = NULL;
-        SET v_result = 'draw';
-    END IF;
-    
-    -- Cập nhật trận đấu
-    UPDATE matches
-    SET winner_id = v_winner_id,
-        result = v_result,
-        match_status = 'completed',
-        ended_at = NOW()
-    WHERE match_id = p_match_id;
-    
-    -- Cập nhật thống kê user
-    IF v_result = 'player1_win' THEN
-        UPDATE users SET total_wins = total_wins + 1, total_points = total_points + 2
-        WHERE user_id = v_player1_id;
-        UPDATE users SET total_losses = total_losses + 1
-        WHERE user_id = v_player2_id;
-    ELSEIF v_result = 'player2_win' THEN
-        UPDATE users SET total_wins = total_wins + 1, total_points = total_points + 2
-        WHERE user_id = v_player2_id;
-        UPDATE users SET total_losses = total_losses + 1
-        WHERE user_id = v_player1_id;
-    ELSE
-        UPDATE users SET total_draws = total_draws + 1, total_points = total_points + 1
-        WHERE user_id IN (v_player1_id, v_player2_id);
-    END IF;
-    
-    -- Đổi trạng thái về online
-    UPDATE users SET status = 'online'
-    WHERE user_id IN (v_player1_id, v_player2_id);
-END //
-DELIMITER ;
+--
+-- Final view structure for view `leaderboard_by_points`
+--
 
--- ========================================
--- HƯỚNG DẪN SỬ DỤNG
--- ========================================
-/*
-=== LUỒNG CHƠI GAME ===
+/*!50001 DROP VIEW IF EXISTS `leaderboard_by_points`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `leaderboard_by_points` AS select `users`.`user_id` AS `user_id`,`users`.`username` AS `username`,`users`.`full_name` AS `full_name`,`users`.`total_points` AS `total_points`,`users`.`total_wins` AS `total_wins`,`users`.`total_draws` AS `total_draws`,`users`.`total_losses` AS `total_losses`,((`users`.`total_wins` + `users`.`total_draws`) + `users`.`total_losses`) AS `total_matches` from `users` order by `users`.`total_points` desc,`users`.`total_wins` desc limit 100 */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 
-1. TẠO TRẬN ĐẤU:
-CALL CreateMatch(1, 2, @match_id);
-→ match_id = 1
+--
+-- Final view structure for view `leaderboard_by_wins`
+--
 
-2. TẠO VÒNG 1:
-CALL CreateRound(1, 1, 'Á,B,Đ,G,N,Ó', 4, @detail_id);
-→ detail_id = 1
+/*!50001 DROP VIEW IF EXISTS `leaderboard_by_wins`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `leaderboard_by_wins` AS select `users`.`user_id` AS `user_id`,`users`.`username` AS `username`,`users`.`full_name` AS `full_name`,`users`.`total_wins` AS `total_wins`,`users`.`total_points` AS `total_points`,`users`.`total_draws` AS `total_draws`,`users`.`total_losses` AS `total_losses`,((`users`.`total_wins` + `users`.`total_draws`) + `users`.`total_losses`) AS `total_matches` from `users` order by `users`.`total_wins` desc,`users`.`total_points` desc limit 100 */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 
-3. NGƯỜI CHƠI GỬI TỪ:
--- Kiểm tra từ
-CALL CheckWord('BÁNH', @is_valid);
+--
+-- Final view structure for view `match_history`
+--
 
--- Lưu từ
-INSERT INTO match_words (match_id, detail_id, user_id, word, is_valid)
-VALUES (1, 1, 1, 'BÁNH', @is_valid);
+/*!50001 DROP VIEW IF EXISTS `match_history`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `match_history` AS select `m`.`match_id` AS `match_id`,`m`.`player1_id` AS `player1_id`,`u1`.`username` AS `player1_name`,`m`.`player2_id` AS `player2_id`,`u2`.`username` AS `player2_name`,`m`.`total_rounds` AS `total_rounds`,`m`.`player1_rounds_won` AS `player1_rounds_won`,`m`.`player2_rounds_won` AS `player2_rounds_won`,`m`.`winner_id` AS `winner_id`,(case when (`m`.`winner_id` = `m`.`player1_id`) then `u1`.`username` when (`m`.`winner_id` = `m`.`player2_id`) then `u2`.`username` else 'Hòa' end) AS `winner_name`,`m`.`result` AS `result`,`m`.`started_at` AS `started_at`,`m`.`ended_at` AS `ended_at`,timestampdiff(MINUTE,`m`.`started_at`,`m`.`ended_at`) AS `duration_minutes` from ((`matches` `m` join `users` `u1` on((`m`.`player1_id` = `u1`.`user_id`))) join `users` `u2` on((`m`.`player2_id` = `u2`.`user_id`))) where (`m`.`match_status` = 'completed') order by `m`.`ended_at` desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 
-4. KẾT THÚC VÒNG 1:
-CALL FinishRound(1);
-→ Tự động đếm từ, xác định người thắng vòng 1
+--
+-- Final view structure for view `online_players`
+--
 
-5. TẠO VÒNG 2, 3 (nếu cần):
-CALL CreateRound(1, 2, 'C,H,Ó,Ồ,M,P', 5, @detail_id2);
-... (lặp lại bước 3-4)
+/*!50001 DROP VIEW IF EXISTS `online_players`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `online_players` AS select `users`.`user_id` AS `user_id`,`users`.`username` AS `username`,`users`.`full_name` AS `full_name`,`users`.`status` AS `status`,`users`.`total_points` AS `total_points`,`users`.`total_wins` AS `total_wins`,`users`.`total_draws` AS `total_draws`,`users`.`total_losses` AS `total_losses` from `users` where (`users`.`status` in ('online','playing')) order by `users`.`total_points` desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-6. KẾT THÚC TRẬN:
-CALL FinishMatch(1);
-→ Tự động xác định người thắng, cộng điểm
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-7. XEM KẾT QUẢ:
--- Lịch sử trận đấu
-SELECT * FROM match_history WHERE match_id = 1;
-
--- Chi tiết từng vòng
-SELECT * FROM match_details WHERE match_id = 1;
-
--- Từ đã ghép
-SELECT u.username, mw.word, mw.is_valid
-FROM match_words mw
-JOIN users u ON mw.user_id = u.user_id
-WHERE mw.match_id = 1 AND mw.detail_id = 1
-ORDER BY mw.submitted_at;
-
-8. BẢNG XẾP HẠNG:
-SELECT * FROM leaderboard_by_points;
-SELECT * FROM leaderboard_by_wins;
-*/
+-- Dump completed on 2025-11-11 21:58:19
