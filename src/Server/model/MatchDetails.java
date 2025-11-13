@@ -3,17 +3,19 @@ package Server.model;
 import java.time.LocalDateTime;
 
 /**
- * Model class đại diện cho bảng match_details trong database
+ * Model class đại diện cho bảng MATCH_DETAILS trong database
  */
 public class MatchDetails {
     private int detailId;
     private int matchId;
     private int roundNumber;
-    private Integer letterId;           // FK tới bảng letters (nullable)
+    private int letterId;
     private int player1WordsCount;
     private int player2WordsCount;
-    private Integer winnerId;           // FK tới bảng users (nullable)
-    private String roundStatus;         // enum: 'waiting', 'playing', 'completed'
+    private Integer winnerId;
+    private String roundStatus;
+    private String player1Dic;
+    private String player2Dic;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;
@@ -23,10 +25,10 @@ public class MatchDetails {
     }
 
     // Constructor đầy đủ
-    public MatchDetails(int detailId, int matchId, int roundNumber, Integer letterId,
-                        int player1WordsCount, int player2WordsCount, Integer winnerId,
-                        String roundStatus, LocalDateTime startedAt, LocalDateTime endedAt,
-                        LocalDateTime createdAt) {
+    public MatchDetails(int detailId, int matchId, int roundNumber, int letterId,
+                        int player1WordsCount,
+                        int player2WordsCount, Integer winnerId, String roundStatus,
+                        LocalDateTime startedAt, LocalDateTime endedAt, LocalDateTime createdAt) {
         this.detailId = detailId;
         this.matchId = matchId;
         this.roundNumber = roundNumber;
@@ -41,7 +43,7 @@ public class MatchDetails {
     }
 
     // Constructor không có ID (dùng khi insert mới)
-    public MatchDetails(int matchId, int roundNumber, Integer letterId) {
+    public MatchDetails(int matchId, int roundNumber, int letterId, int wordLength) {
         this.matchId = matchId;
         this.roundNumber = roundNumber;
         this.letterId = letterId;
@@ -63,8 +65,16 @@ public class MatchDetails {
         return roundNumber;
     }
 
-    public Integer getLetterId() {
+    public int getLetterId() {
         return letterId;
+    }
+
+    public String getPlayer2Dic() {
+        return player2Dic;
+    }
+
+    public String getPlayer1Dic() {
+        return player1Dic;
     }
 
     public int getPlayer1WordsCount() {
@@ -108,8 +118,16 @@ public class MatchDetails {
         this.roundNumber = roundNumber;
     }
 
-    public void setLetterId(Integer letterId) {
+    public void setLetterId(int letterId) {
         this.letterId = letterId;
+    }
+
+    public void setPlayer1Dic(String player1Dic) {
+        this.player1Dic = player1Dic;
+    }
+
+    public void setPlayer2Dic(String player2Dic) {
+        this.player2Dic = player2Dic;
     }
 
     public void setPlayer1WordsCount(int player1WordsCount) {
@@ -149,7 +167,11 @@ public class MatchDetails {
                 ", letterId=" + letterId +
                 ", player1WordsCount=" + player1WordsCount +
                 ", player2WordsCount=" + player2WordsCount +
+                ", winnerId=" + winnerId +
                 ", roundStatus='" + roundStatus + '\'' +
+                ", startedAt=" + startedAt +
+                ", endedAt=" + endedAt +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

@@ -1,6 +1,6 @@
 package Server.DAO;
 
-import Server.model.Letter;
+import Server.model.Letters;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +41,8 @@ public class LetterDAO {
         return letterIds;
     }
     
-    /**
-     * Lấy thông tin Letter theo letter_id
-     */
-    public Letter getLetterById(int letterId) {
+
+    public Letters getLetterById(int letterId) {
         String sql = "SELECT * FROM letters WHERE letter_id = ?";
         
         try (Connection conn = getConnection();
@@ -54,7 +52,7 @@ public class LetterDAO {
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
-                return new Letter(
+                return new Letters(
                     rs.getInt("letter_id"),
                     rs.getString("letter_detail"),
                     rs.getInt("length_word"),
