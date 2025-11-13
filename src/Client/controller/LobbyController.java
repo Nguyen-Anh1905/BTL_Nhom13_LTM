@@ -48,15 +48,17 @@ import java.util.List;
 public class LobbyController implements Initializable {
     
     private Client client;
-    private Users nguoiChoi; // currentUser
+    private Users currentUser; // currentUser
     private WaitingDialogController waitingDialogController;
     private Stage waitingDialogStage;
     private InviteDialogController inviteDialogController;
     private Stage inviteDialogStage;
     
     // Lưu thông tin đối thủ khi challenge
-    private String tenDoiThu;
-    private int idDoiThu;
+    private String opponentName;
+    private int opponentId;
+
+
     
     @FXML
     private Label lblWelcome;  // "Xin chào, [username]"
@@ -237,7 +239,7 @@ public class LobbyController implements Initializable {
                 } else {
                     Users user = getTableView().getItems().get(getIndex());
                     // Không hiển thị nút cho chính mình
-                    if (nguoiChoi != null && user.getUserId() == nguoiChoi.getUserId()) {
+                    if (currentUser != null && user.getUserId() == currentUser.getUserId()) {
                         setGraphic(null);
                     } else {
                         setGraphic(hbox);
@@ -280,7 +282,7 @@ public class LobbyController implements Initializable {
     
     // Nhận thông tin user từ LoginController/RegisterController
     public void setCurrentUser(Users user) {
-        this.nguoiChoi = user;
+        this.currentUser = user;
         
         // Hiển thị thông tin lên UI
         if (lblWelcome != null) {
@@ -308,7 +310,7 @@ public class LobbyController implements Initializable {
     @FXML
     private void handleLogout(ActionEvent event) {
         System.out.println("Đăng xuất");
-        client.sendMessage(new Message(Protocol.LOGOUT, nguoiChoi.getUsername()));
+        client.sendMessage(new Message(Protocol.LOGOUT, currentUser.getUsername()));
         // Quay về màn hình Login và TẠO LẠI CLIENT
         try {
             Stage stage = (Stage) lblWelcome.getScene().getWindow();
@@ -685,8 +687,8 @@ public class LobbyController implements Initializable {
     // Xử lý khi click nút "Mời đấu"
     private void handleChallenge(Users opponent) throws IOException {
         // Lưu thông tin đối thủ
-        tenDoiThu = opponent.getUsername();
-        idDoiThu = opponent.getUserId();
+        opponentName = opponent.getUsername();
+        opponentId = opponent.getUserId();
         
         // 1. Gửi CHALLENGE_REQUEST lên server
         System.out.println("Gửi CHALLENGE_REQUEST lên server...");
@@ -730,8 +732,8 @@ public class LobbyController implements Initializable {
     public void showInviteDialog(int inviterUserId, String inviterUsername) {
         try {
             // Lưu thông tin người mời (đối thủ của người được mời)
-            tenDoiThu = inviterUsername;
-            idDoiThu = inviterUserId;
+            opponentName = inviterUsername;
+            opponentId = inviterUserId;
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/InviteDialog.fxml"));
             Parent root = loader.load();
@@ -767,7 +769,7 @@ public class LobbyController implements Initializable {
         System.out.println(accepterUsername + " đã chấp nhận! Bắt đầu game...");
         // Chuyển sang màn hình GameRoom với đối thủ đã lưu
         try {
-            showGameRoom(tenDoiThu);
+            showGameRoom(opponentName);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Lỗi khi mở GameRoom: " + e.getMessage());
@@ -782,7 +784,7 @@ public class LobbyController implements Initializable {
         // Lấy controller và setup
         GameRoomController gameRoomController = loader.getController();
         gameRoomController.setClient(client);
-        gameRoomController.setCurrentUser(nguoiChoi);
+        gameRoomController.setCurrentUser(currentUser);
         gameRoomController.setOpponent(opponentUsername);
         
         // Lấy stage hiện tại (Lobby stage)
