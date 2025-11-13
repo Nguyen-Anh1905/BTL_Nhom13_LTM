@@ -13,7 +13,7 @@ public class UserDAO {
     // Thông tin kết nối database
     private static final String URL = "jdbc:mysql://localhost:3306/gamevtv";
     private static final String USER = "root";
-    private static final String PASSWORD = "cuong1804sv@";
+    private static final String PASSWORD = "123456";
     
     // Lấy connection
     private Connection getConnection() throws SQLException {
