@@ -249,12 +249,18 @@ public class LobbyController implements Initializable {
                     if (currentUser != null && user.getUserId() == currentUser.getUserId()) {
                         setGraphic(null);
                     } else {
-                        // Disable nút "Mời đấu" nếu user đang playing
-                        if ("playing".equalsIgnoreCase(user.getStatus())) {
+                        String status = user.getStatus();
+                        // Disable nút nếu user không online (offline hoặc playing)
+                        if ("offline".equalsIgnoreCase(status) || status == null || status.trim().isEmpty()) {
+                            btnChallenge.setDisable(true);
+                            btnChallenge.setStyle("-fx-background-color: #9E9E9E; -fx-text-fill: #666666;");
+                            btnChallenge.setText("Offline");
+                        } else if ("playing".equalsIgnoreCase(status)) {
                             btnChallenge.setDisable(true);
                             btnChallenge.setStyle("-fx-background-color: #CCCCCC; -fx-text-fill: #666666;");
                             btnChallenge.setText("Đang chơi");
                         } else {
+                            // online - có thể mời
                             btnChallenge.setDisable(false);
                             btnChallenge.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
                             btnChallenge.setText("Mời đấu");
