@@ -8,6 +8,10 @@
 !database_final.sql
 !vtv_final1.sql
 !mo_ta.txt
+!server.config.example
+
+# Ignore actual config (each person has their own)
+server.config
 
 # Still ignore compiled files in src
 *.class

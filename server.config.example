@@ -1,0 +1,15 @@
+# Server Configuration Example
+# Copy file này thành "server.config" và sửa IP/PORT phù hợp
+
+# Nếu bạn chạy SERVER:
+# - Cùng máy: dùng localhost
+# - Radmin VPN: dùng IP Radmin của bạn (26.x.x.x)
+# - Mạng LAN: dùng IP từ ipconfig (192.168.x.x)
+
+# Nếu bạn chạy CLIENT:
+# - Kết nối server cùng máy: localhost
+# - Kết nối qua Radmin: IP Radmin của người chạy server
+# - Kết nối qua LAN: IP LAN của người chạy server
+
+SERVER_IP=localhost
+SERVER_PORT=9999
