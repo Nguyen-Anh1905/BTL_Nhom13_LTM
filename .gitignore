@@ -6,6 +6,7 @@
 !src/
 !src/**
 !database_final.sql
+!vtv_final1.sql
 !mo_ta.txt
 
 # Still ignore compiled files in src
