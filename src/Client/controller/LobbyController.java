@@ -19,6 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
@@ -53,6 +54,7 @@ public class LobbyController implements Initializable {
     private Stage waitingDialogStage;
     private InviteDialogController inviteDialogController;
     private Stage inviteDialogStage;
+    private GameRoomController gameRoomController; // Lưu reference
     
     // Lưu thông tin đối thủ khi challenge
     private String opponentName;
@@ -99,7 +101,7 @@ public class LobbyController implements Initializable {
     @FXML
     private TableView<MatchHistoryResponse> tblMatchHistory;
     @FXML
-    private TableColumn<MatchHistoryResponse, Integer> colMatchId;
+    private TableColumn<MatchHistoryResponse, String> colMatchStart;
     @FXML
     private TableColumn<MatchHistoryResponse, String> colOpponent;
     @FXML
@@ -204,16 +206,14 @@ public class LobbyController implements Initializable {
             });
         }
         
-        // Set up cột Hành động với 2 nút: Mời đấu và Chat
+        // Set up cột Hành động với nút Mời đấu
         colActions.setCellFactory(param -> new TableCell<Users, Void>() {
             private final Button btnChallenge = new Button("Mời đấu");
-            private final Button btnChat = new Button("Chat");
-            private final HBox hbox = new HBox(10, btnChallenge, btnChat);
+            private final HBox hbox = new HBox(10, btnChallenge);
             
             {
                 hbox.setAlignment(Pos.CENTER);
                 btnChallenge.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-                btnChat.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
                 
                 btnChallenge.setOnAction(event -> {
                     Users selectedUser = getTableView().getItems().get(getIndex());
@@ -223,11 +223,6 @@ public class LobbyController implements Initializable {
                         e.printStackTrace();
                         System.out.println("Lỗi khi mở dialog: " + e.getMessage());
                     }
-                });
-                
-                btnChat.setOnAction(event -> {
-                    Users selectedUser = getTableView().getItems().get(getIndex());
-                    handleChat(selectedUser);
                 });
             }
             
@@ -242,6 +237,16 @@ public class LobbyController implements Initializable {
                     if (currentUser != null && user.getUserId() == currentUser.getUserId()) {
                         setGraphic(null);
                     } else {
+                        // Disable nút "Mời đấu" nếu user đang playing
+                        if ("playing".equalsIgnoreCase(user.getStatus())) {
+                            btnChallenge.setDisable(true);
+                            btnChallenge.setStyle("-fx-background-color: #CCCCCC; -fx-text-fill: #666666;");
+                            btnChallenge.setText("Đang chơi");
+                        } else {
+                            btnChallenge.setDisable(false);
+                            btnChallenge.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+                            btnChallenge.setText("Mời đấu");
+                        }
                         setGraphic(hbox);
                     }
                 }
@@ -250,7 +255,7 @@ public class LobbyController implements Initializable {
         
         System.out.println("TableView columns đã được setup!");
         // Setup match history columns
-        if (colMatchId != null) colMatchId.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getMatchId()).asObject());
+        if (colMatchStart != null) colMatchStart.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMatchStart()));
         if (colOpponent != null) colOpponent.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPlayerName()));
         if (colResult != null) colResult.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMatchResult()));
         if (colScore != null) colScore.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMatchScore()));
@@ -711,19 +716,13 @@ public class LobbyController implements Initializable {
         waitingDialogStage.initModality(Modality.APPLICATION_MODAL);
         waitingDialogStage.setTitle("Đang chờ phản hồi...");
         waitingDialogStage.setScene(new Scene(root));
-        waitingDialogStage.setResizable(false);
+        waitingDialogStage.setResizable(true);
         
         // 5. Set dialog stage vào controller
         waitingDialogController.setDialogStage(waitingDialogStage);
         
         // 6. Hiển thị dialog (countdown tự động chạy trong initialize)
         waitingDialogStage.show();
-    }
-    
-    // Xử lý khi click nút "Chat"
-    private void handleChat(Users user) {
-        System.out.println("Mở chat với: " + user.getUsername());
-        // TODO: Mở cửa sổ chat với user này
     }
     
     // ==================== CHALLENGE METHODS ====================
@@ -746,7 +745,7 @@ public class LobbyController implements Initializable {
             inviteDialogStage.initModality(Modality.APPLICATION_MODAL);
             inviteDialogStage.setTitle("Lời mời đấu");
             inviteDialogStage.setScene(new Scene(root));
-            inviteDialogStage.setResizable(false);
+            inviteDialogStage.setResizable(true);
             
             inviteDialogController.setDialogStage(inviteDialogStage);
             
@@ -766,23 +765,34 @@ public class LobbyController implements Initializable {
         if (inviteDialogStage != null && inviteDialogStage.isShowing()) {
             inviteDialogStage.close();
         }      
-        System.out.println(accepterUsername + " đã chấp nhận! Bắt đầu game...");
+        System.out.println("🎉 " + accepterUsername + " đã chấp nhận! Bắt đầu game...");
         // Chuyển sang màn hình GameRoom với đối thủ đã lưu
         try {
             showGameRoom(opponentName);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Lỗi khi mở GameRoom: " + e.getMessage());
+            System.err.println("❌ Lỗi khi mở GameRoom: " + e.getMessage());
+            // Hiện alert cho user
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Lỗi");
+                alert.setHeaderText("Không thể mở màn hình game");
+                alert.setContentText("Lỗi: " + e.getMessage());
+                alert.showAndWait();
+            });
         }
     }
     // Hiển thị GameRoom
     private void showGameRoom(String opponentUsername) throws IOException {
+        System.out.println("🎮 showGameRoom() called for opponent: " + opponentUsername);
         // Load GameRoom FXML
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/GameRoom.fxml"));
+        System.out.println("📄 Loading FXML...");
         Parent root = loader.load();
+        System.out.println("✅ FXML loaded successfully");
         
         // Lấy controller và setup
-        GameRoomController gameRoomController = loader.getController();
+        gameRoomController = loader.getController();
         gameRoomController.setClient(client);
         gameRoomController.setCurrentUser(currentUser);
         gameRoomController.setOpponent(opponentUsername);
@@ -793,24 +803,56 @@ public class LobbyController implements Initializable {
         // Truyền lobby stage vào GameRoom để có thể quay lại
         gameRoomController.setLobbyStage(lobbyStage);
         
-        // Ẩn Lobby stage
-        lobbyStage.hide();
+        // Lưu kích thước hiện tại của lobby
+        double currentWidth = lobbyStage.getWidth();
+        double currentHeight = lobbyStage.getHeight();
+        double currentX = lobbyStage.getX();
+        double currentY = lobbyStage.getY();
         
-        // Tạo stage mới cho GameRoom
-        Stage gameStage = new Stage();
-        gameStage.setTitle("Game Room - VS " + opponentUsername);
-        gameStage.setScene(new Scene(root));
-        gameStage.setResizable(false);
+        // Đổi scene của stage hiện tại thay vì tạo stage mới
+        Scene gameScene = new Scene(root);
+        lobbyStage.setScene(gameScene);
+        lobbyStage.setTitle("Game Room - VS " + opponentUsername);
         
-        // Khi đóng GameRoom, hiện lại Lobby
-        gameStage.setOnCloseRequest(event -> {
-            lobbyStage.show();
+        // Giữ nguyên kích thước và vị trí
+        lobbyStage.setWidth(currentWidth);
+        lobbyStage.setHeight(currentHeight);
+        lobbyStage.setX(currentX);
+        lobbyStage.setY(currentY);
+        
+        // Khi đóng GameRoom bằng nút X, gửi forfeit và ngắt kết nối
+        lobbyStage.setOnCloseRequest(event -> {
+            // Ngăn đóng trực tiếp
+            event.consume();
+            
+            System.out.println("🏳️ Người chơi thoát và ngắt kết nối!");
+            
+            // Gửi forfeit lên server
+            client.sendMessage(new Message(Protocol.FORFEIT_GAME, String.valueOf(currentUser.getUserId())));
+            
+            // Chờ một chút để message được gửi
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
+            // Đóng stage và ngắt kết nối
+            lobbyStage.close();
+            
+            // Ngắt kết nối client
+            if (client != null) {
+                client.disconnect();
+            }
+            
+            // Thoát ứng dụng
+            Platform.exit();
+            System.exit(0);
         });
         
-        // Hiển thị GameRoom
-        gameStage.show();
-        
-        System.out.println("Đã mở GameRoom với đối thủ: " + opponentUsername);
+        // Stage đã được cập nhật, không cần show() nữa
+        System.out.println("✅ Đã chuyển sang GameRoom với đối thủ: " + opponentUsername);
+        System.out.println("⏳ Đợi server gửi ROUND_START để bắt đầu game...");
     }
     
     // Đóng WaitingDialog và hiện thông báo (khi challenge rejected)
@@ -833,6 +875,57 @@ public class LobbyController implements Initializable {
     // Xử lý khi challenge failed (user offline, etc.)
     public void onChallengeFailed(String errorMessage) {
         System.out.println("Challenge failed: " + errorMessage);
+    }
+    
+    // Bắt đầu round game
+    public void startGameRound(String letterDetail, int lengthWord, int timeRound) {
+        System.out.println("🎮 LobbyController.startGameRound() called");
+        System.out.println("  - gameRoomController: " + (gameRoomController != null ? "OK" : "NULL"));
+        
+        if (gameRoomController != null) {
+            gameRoomController.setupRound(letterDetail, lengthWord, timeRound);
+        } else {
+            System.err.println("❌ gameRoomController is null! GameRoom chưa được mở.");
+        }
+    }
+    
+    // Cập nhật kết quả submit trong round
+    public void updateRoundResult(int playerId, int correctCount, boolean isValid, String meaning) {
+        if (gameRoomController != null) {
+            // Chỉ hiển thị kết quả nếu là người chơi hiện tại submit
+            if (playerId == currentUser.getUserId()) {
+                gameRoomController.showSubmitResult(isValid, meaning, correctCount);
+            }
+            // Cập nhật điểm của cả 2 người chơi
+            gameRoomController.updateScore(playerId, correctCount);
+        }
+    }
+    
+    // Kết thúc round
+    public void endRound(int roundWinnerId, int myCount, int oppCount, String myWords, String oppWords) {
+        if (gameRoomController != null) {
+            gameRoomController.onRoundEnd(roundWinnerId, myCount, oppCount, myWords, oppWords);
+        }
+    }
+    
+    // Kết thúc game
+    public void endGame(int gameWinnerId, int roundWinsP1, int roundWinsP2) {
+        if (gameRoomController != null) {
+            gameRoomController.onGameEnd(gameWinnerId, roundWinsP1, roundWinsP2);
+        }
+    }
+    
+    // Xử lý khi đối thủ forfeit
+    public void onOpponentForfeited() {
+        if (gameRoomController != null) {
+            gameRoomController.onOpponentForfeited();
+        }
+    }
+    
+    public void handleOpponentEmote(String iconFileName) {
+        if (gameRoomController != null) {
+            gameRoomController.showOpponentEmote(iconFileName);
+        }
     }
 
 //----------------------------------------------------------------------------------------------------

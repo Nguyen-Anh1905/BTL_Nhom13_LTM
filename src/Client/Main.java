@@ -9,13 +9,30 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import java.io.FileInputStream;
+import java.util.Properties;
 
 public class Main extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
         MessageHandler handler = new MessageHandler();
-        Client client = new Client("localhost", 9999, handler);
+        
+        // Đọc config từ file server.config
+        String serverIP = "localhost"; // Giá trị mặc định
+        int serverPort = 9999;
+        
+        try {
+            Properties props = new Properties();
+            props.load(new FileInputStream("server.config"));
+            serverIP = props.getProperty("SERVER_IP", "localhost");
+            serverPort = Integer.parseInt(props.getProperty("SERVER_PORT", "9999"));
+            System.out.println("📡 Kết nối đến Server: " + serverIP + ":" + serverPort);
+        } catch (Exception e) {
+            System.out.println("⚠️ Không đọc được file server.config, dùng localhost:9999");
+        }
+        
+        Client client = new Client(serverIP, serverPort, handler);
         handler.setClient(client); 
         client.showLoginUI(stage);
     }

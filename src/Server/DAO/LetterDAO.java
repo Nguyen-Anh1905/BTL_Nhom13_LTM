@@ -61,4 +61,27 @@ public class LetterDAO {
         }
         return l;
     }
+    
+    // Lấy tất cả letters từ DB
+    public List<Letters> findAll() {
+        List<Letters> results = new ArrayList<>();
+        String sql = "SELECT letter_id, letter_detail, length_word, time_round FROM letters";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Letters l = new Letters();
+                    l.setLetterId(rs.getInt("letter_id"));
+                    l.setLetterDetail(rs.getString("letter_detail"));
+                    l.setLengthWord(rs.getInt("length_word"));
+                    l.setTimeRound(rs.getInt("time_round"));
+                    results.add(l);
+                }
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
 }

@@ -117,5 +117,32 @@ public class Client {
     public Stage getPrimaryStage() {
         return this.primaryStage;
     }
+    
+    public MessageHandler getHandler() {
+        return this.handler;
+    }
+    
+    /**
+     * Ngắt kết nối với server
+     */
+    public void disconnect() {
+        try {
+            System.out.println("🔌 Đang ngắt kết nối với server...");
+            
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+            
+            System.out.println("✅ Đã ngắt kết nối với server");
+        } catch (IOException e) {
+            System.err.println("❌ Lỗi khi ngắt kết nối: " + e.getMessage());
+        }
+    }
 }
 

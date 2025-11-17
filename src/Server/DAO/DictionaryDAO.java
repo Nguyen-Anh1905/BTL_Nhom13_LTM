@@ -24,7 +24,7 @@ public class DictionaryDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Gán từng giá trị id vào dấu ?
+            // Gán từng giá trị id vào dấu ? 
             int i = 1;
             for (Integer id : ids) stmt.setInt(i++, id);
 
@@ -45,4 +45,52 @@ public class DictionaryDAO {
         return results;
     }
 
+    // Lấy meaning của một word từ DB
+    public String getMeaningByWord(String word) {
+        String sql = "SELECT meaning FROM dictionary WHERE LOWER(word) = LOWER(?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, word);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("meaning");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Lấy word_id của một word từ DB
+    public Integer getWordIdByWord(String word) {
+        String sql = "SELECT word_id FROM dictionary WHERE LOWER(word) = LOWER(?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, word);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("word_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Lấy list từ hợp lệ cho một letter theo letter_id
+    public List<String> getWordsByLetterId(int letterId) {
+        List<String> words = new ArrayList<>();
+        String sql = "SELECT word FROM dictionary WHERE letter_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, letterId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                words.add(rs.getString("word"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return words;
+    }
 }

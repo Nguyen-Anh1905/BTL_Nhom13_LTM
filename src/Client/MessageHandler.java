@@ -194,6 +194,93 @@ public class MessageHandler {
                 }
                 break;
                 
+            case Protocol.ROUND_START:
+                System.out.println("Nhận được ROUND_START: " + msg.getContent());
+                // Payload: letterDetail:lengthWord:timeRound
+                String[] roundStartParts = ((String) msg.getContent()).split(":");
+                String letterDetail = roundStartParts[0];
+                int lengthWord = Integer.parseInt(roundStartParts[1]);
+                int timeRound = Integer.parseInt(roundStartParts[2]);
+                
+                System.out.println("  - Letters: " + letterDetail);
+                System.out.println("  - Length: " + lengthWord);
+                System.out.println("  - Time: " + timeRound);
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        // Chuyển đến GameRoom và setup round
+                        lobbyController.startGameRound(letterDetail, lengthWord, timeRound);
+                    });
+                } else {
+                    System.err.println("❌ LobbyController is null!");
+                }
+                break;
+                
+            case Protocol.ROUND_RESULT:
+                System.out.println("Nhận được ROUND_RESULT");
+                // Payload: playerId:correctCount:isValid:meaning
+                String[] resultParts = ((String) msg.getContent()).split(":", 4);
+                int resPlayerId = Integer.parseInt(resultParts[0]);
+                int correctCount = Integer.parseInt(resultParts[1]);
+                boolean isValid = Boolean.parseBoolean(resultParts[2]);
+                String meaning = resultParts.length > 3 ? resultParts[3] : "";
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.updateRoundResult(resPlayerId, correctCount, isValid, meaning);
+                    });
+                }
+                break;
+                
+            case Protocol.ROUND_END:
+                System.out.println("Nhận được ROUND_END");
+                // Payload từ server: winnerId:myCount:oppCount:myWords:oppWords
+                // (Server đã swap để mỗi client nhận info của mình ở vị trí đầu)
+                String[] endParts = ((String) msg.getContent()).split(":", 5);
+                int roundWinnerId = Integer.parseInt(endParts[0]);
+                int myCount = Integer.parseInt(endParts[1]);
+                int oppCount = Integer.parseInt(endParts[2]);
+                String myWords = endParts.length > 3 ? endParts[3] : "";
+                String oppWords = endParts.length > 4 ? endParts[4] : "";
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.endRound(roundWinnerId, myCount, oppCount, myWords, oppWords);
+                    });
+                }
+                break;
+                
+            case Protocol.GAME_END:
+                System.out.println("Nhận được GAME_END");
+                // Payload: winnerId:roundWinsP1:roundWinsP2
+                String[] gameEndParts = ((String) msg.getContent()).split(":");
+                int gameWinnerId = Integer.parseInt(gameEndParts[0]);
+                int roundWinsP1 = Integer.parseInt(gameEndParts[1]);
+                int roundWinsP2 = Integer.parseInt(gameEndParts[2]);
+                
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.endGame(gameWinnerId, roundWinsP1, roundWinsP2);
+                    });
+                }
+                break;
+                
+            case Protocol.OPPONENT_FORFEITED:
+                System.out.println("Nhận được OPPONENT_FORFEITED - Đối thủ đã thoát trận");
+                if (lobbyController != null) {
+                    Platform.runLater(() -> {
+                        lobbyController.onOpponentForfeited();
+                    });
+                }
+                break;
+                
+            case Protocol.RECEIVE_EMOTE:
+                System.out.println("📥 Nhận emote từ đối thủ: " + msg.getContent());
+                if (lobbyController != null) {
+                    lobbyController.handleOpponentEmote((String) msg.getContent());
+                }
+                break;
+                
             // Xử lý các loại message khác nếu cần
             default:
                 System.out.println("Unhandled message type: " + msg.getType());

@@ -137,8 +137,9 @@ public class MatchDAO {
                     rs.getInt("player2_rounds_won"),
                     (Integer) rs.getObject("winner_id"),
                     rs.getString("result"),
-                    rs.getTimestamp("started_at").toLocalDateTime(),
-                    rs.getTimestamp("ended_at") != null ? rs.getTimestamp("ended_at").toLocalDateTime() : null
+                    rs.getTimestamp("started_at") != null ? rs.getTimestamp("started_at").toLocalDateTime() : null,
+                    rs.getTimestamp("ended_at") != null ? rs.getTimestamp("ended_at").toLocalDateTime() : null,
+                    rs.getInt("draw")
                 );
             }
             

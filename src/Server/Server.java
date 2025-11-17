@@ -5,13 +5,19 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import Server.service.Gameroom;
 
 public class Server {
     private static final int PORT = 9999;
     private static Map<Integer, ClientHandler> userHandlers = new ConcurrentHashMap<>();
+    private static Map<Integer, Gameroom> gamerooms = new ConcurrentHashMap<>(); // matchId -> Gameroom
 
     public static Map<Integer, ClientHandler> getUserHandlers() {
         return userHandlers;
+    }
+
+    public static Map<Integer, Gameroom> getGamerooms() {
+        return gamerooms;
     }
 
     public static void main(String[] args) {

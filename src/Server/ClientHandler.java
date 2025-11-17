@@ -48,6 +48,13 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
             System.out.println("Client ngắt kết nối: " + socket.getInetAddress());
             
+            // Kiểm tra nếu đang trong game → xử lý forfeit
+            if (currentGameroom != null && nguoiChoiID != -1) {
+                System.out.println("⚠️ Client " + nguoiChoiID + " ngắt kết nối trong khi đang chơi game!");
+                currentGameroom.handleForfeit(nguoiChoiID);
+                currentGameroom = null; // Clear reference
+            }
+            
             // Xóa khỏi Map
             if (nguoiChoiID != -1) {
                 Server.getUserHandlers().remove(nguoiChoiID);
@@ -77,6 +84,12 @@ public class ClientHandler implements Runnable {
     private void sendToThisClient(Message message) throws IOException {
         out.writeObject(message);
         out.flush();
+    }
+    
+    // Method để clear gameroom reference (gọi khi game kết thúc)
+    public void clearGameroom() {
+        this.currentGameroom = null;
+        System.out.println("🗑️ Đã clear gameroom reference cho userId: " + nguoiChoiID);
     }
 
     private void handleMessage(Message msg) throws IOException {
@@ -247,6 +260,12 @@ public class ClientHandler implements Runnable {
                     userDAO.updateUserStatus(tenNguoiChoi, "playing");
                     System.out.println("✅ Đã update status 'playing' cho user " + nguoiMoiID + " và " + nguoiChoiID);
                     
+                    // Tạo Gameroom
+                    Gameroom gameroom = new Gameroom(nguoiMoiID, nguoiChoiID);
+                    Server.getGamerooms().put(gameroom.getMatchId(), gameroom);
+                    nguoiMoiHandler.currentGameroom = gameroom;
+                    this.currentGameroom = gameroom;
+                    
                     // Gửi thông báo chấp nhận cho cả 2
                     String nguoiChapNhanInfo = nguoiChoiID + ":" + tenNguoiChoi;
                     nguoiMoiHandler.sendMessage(new Message(Protocol.CHALLENGE_ACCEPTED, nguoiChapNhanInfo));
@@ -256,7 +275,8 @@ public class ClientHandler implements Runnable {
                     sendToThisClient(new Message(Protocol.CHALLENGE_ACCEPTED, nguoiMoiInfo));
                     System.out.println("Đã thông báo chấp nhận đến user " + nguoiChoiID + " (accepter)");
                     
-                    // TODO: Tạo game room cho 2 người chơi (implement sau)
+                    // Bắt đầu round 1
+                    gameroom.startRound();
                 }
                 break;
             // Người nhận từ chối lời mời    
@@ -351,8 +371,39 @@ public class ClientHandler implements Runnable {
                     out.flush();
                 }
                 break;
+                
+            case Protocol.SUBMIT_WORD:
+                if (currentGameroom != null) {
+                    String[] submitParts = ((String) msg.getContent()).split(":");
+                    int playerId = Integer.parseInt(submitParts[0]);
+                    String word = submitParts[1];
+                    currentGameroom.submitWord(playerId, word);
+                }
+                break;
+                
+            case Protocol.PLAYER_READY:
+                if (currentGameroom != null) {
+                    currentGameroom.playerReady(nguoiChoiID);
+                }
+                break;
+                
+            case Protocol.FORFEIT_GAME:
+                System.out.println("🏳️ Nhận FORFEIT_GAME từ userId: " + nguoiChoiID);
+                if (currentGameroom != null) {
+                    currentGameroom.handleForfeit(nguoiChoiID);
+                }
+                break;
+                
+            case Protocol.SEND_EMOTE:
+                System.out.println("😊 Nhận SEND_EMOTE từ userId: " + nguoiChoiID + ", icon: " + msg.getContent());
+                if (currentGameroom != null) {
+                    // Broadcast emote to opponent
+                    currentGameroom.broadcastEmote(nguoiChoiID, (String) msg.getContent());
+                }
+                break;
         }
     }
     
 
 }
+

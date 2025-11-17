@@ -9,9 +9,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/GameResult.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.GameResultController">
+<AnchorPane minHeight="500.0" minWidth="600.0" prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/GameResult.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <VBox alignment="CENTER" prefHeight="600.0" prefWidth="800.0" spacing="20.0" style="-fx-background-color: linear-gradient(to bottom, #673AB7, #9C27B0);">
+      <VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #667eea 0%, #764ba2 100%);" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <children>
             <!-- Result Header -->
             <VBox alignment="CENTER" spacing="10.0">
@@ -146,17 +146,17 @@
             <!-- Action Buttons -->
             <HBox alignment="CENTER" spacing="20.0">
                <children>
-                  <Button fx:id="btnContinue" mnemonicParsing="false" onAction="#handleContinue" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Tiếp tục" visible="false">
+                  <Button fx:id="btnContinue" mnemonicParsing="false" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Tiếp tục" visible="false">
                      <font>
                         <Font name="System Bold" size="16.0" />
                      </font>
                   </Button>
-                  <Button fx:id="btnPlayAgain" mnemonicParsing="false" onAction="#handlePlayAgain" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #FF9800; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Chơi lại" visible="false">
+                  <Button fx:id="btnPlayAgain" mnemonicParsing="false" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #FF9800; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Chơi lại" visible="false">
                      <font>
                         <Font name="System Bold" size="16.0" />
                      </font>
                   </Button>
-                  <Button mnemonicParsing="false" onAction="#handleBackToLobby" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #607D8B; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Về sảnh">
+                  <Button mnemonicParsing="false" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #607D8B; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Về sảnh">
                      <font>
                         <Font name="System Bold" size="16.0" />
                      </font>

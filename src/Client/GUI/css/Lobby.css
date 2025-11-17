@@ -5,29 +5,29 @@
 }
 
 .table-view {
-    -fx-background-color: white;
+    -fx-background-color: rgba(255, 255, 255, 0.95);
 }
 
 .table-view .column-header {
-    -fx-background-color: #1976D2;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #667eea 0%, #764ba2 100%);
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
 
 .table-row-cell {
-    -fx-background-color: white;
+    -fx-background-color: rgba(255, 255, 255, 0.95);
 }
 
 .table-row-cell:odd {
-    -fx-background-color: #F5F5F5;
+    -fx-background-color: rgba(240, 240, 255, 0.95);
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #BBDEFB;
+    -fx-background-color: rgba(102, 126, 234, 0.3);
 }
 
 .button {
-    -fx-background-color: #2196F3;
+    -fx-background-color: #764ba2;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-cursor: hand;
@@ -36,69 +36,70 @@
 }
 
 .button:hover {
-    -fx-background-color: #1976D2;
+    -fx-background-color: #667eea;
 }
 
 .button:pressed {
-    -fx-background-color: #0D47A1;
+    -fx-background-color: #5a3d8a;
 }
 
-/* Nút Reload - màu xanh lam nhạt */
+/* Nút Reload - màu xanh lá */
 .button-reload {
-    -fx-background-color: #03A9F4;
-}
-
-.button-reload:hover {
-    -fx-background-color: #0288D1;
-}
-
-/* Nút Search - màu xanh dương đậm */
-.button-search {
-    -fx-background-color: #1976D2;
-}
-
-.button-search:hover {
-    -fx-background-color: #1565C0;
-}
-
-/* Nút Sort (Theo điểm / Theo thắng) - màu tím */
-.button-sort {
-    -fx-background-color: #9C27B0;
-}
-
-.button-sort:hover {
-    -fx-background-color: #7B1FA2;
-}
-
-/* Nút Chat - màu xanh lá */
-.button-chat {
     -fx-background-color: #4CAF50;
 }
 
-.button-chat:hover {
-    -fx-background-color: #388E3C;
+.button-reload:hover {
+    -fx-background-color: #45a049;
 }
 
-/* Nút Mời đấu - màu đỏ cam */
+/* Nút Search - màu tím đậm */
+.button-search {
+    -fx-background-color: #764ba2;
+}
+
+.button-search:hover {
+    -fx-background-color: #667eea;
+}
+
+/* Nút Sort (Theo điểm / Theo thắng) - màu tím nhạt */
+.button-sort {
+    -fx-background-color: #8e7cc3;
+}
+
+.button-sort:hover {
+    -fx-background-color: #764ba2;
+}
+
+/* Nút Chat - màu vàng */
+.button-chat {
+    -fx-background-color: #FFD700;
+    -fx-text-fill: #333;
+}
+
+.button-chat:hover {
+    -fx-background-color: #FFC700;
+}
+
+/* Nút Mời đấu - màu cam */
 .button-challenge {
-    -fx-background-color: #FF5722;
+    -fx-background-color: #FF9800;
 }
 
 .button-challenge:hover {
-    -fx-background-color: #E64A19;
+    -fx-background-color: #FB8C00;
 }
 
 /* TextField tìm kiếm */
 .text-field {
     -fx-background-color: white;
-    -fx-border-color: #BDBDBD;
+    -fx-border-color: rgba(118, 75, 162, 0.5);
     -fx-border-radius: 5;
     -fx-background-radius: 5;
     -fx-padding: 8 12 8 12;
 }
 
 .text-field:focused {
-    -fx-border-color: #2196F3;
+    -fx-border-color: #667eea;
     -fx-border-width: 2;
 }
 
@@ -117,29 +118,6 @@
     -fx-font-weight: bold;
 }
 
-/* Additional styles for search HBox controls */
-.button-reload {
-    -fx-background-color: #4CAF50;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 5;
-    -fx-padding: 6 12 6 12;
-}
-
-.button-search {
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 5;
-    -fx-padding: 6 12 6 12;
-}
-
-.text-field {
-    -fx-background-radius: 4;
-    -fx-border-color: #BDBDBD;
-    -fx-padding: 6 8 6 8;
-}
-
 /* Styles for match detail popup */
 .title-label {
     -fx-font-size: 14px;
@@ -149,11 +127,5 @@
 
 .detail-count {
     -fx-font-weight: bold;
-    -fx-text-fill: #1976D2;
-}
-
-.table-view .column-header {
-    -fx-background-color: linear-gradient(#2196F3, #1976D2);
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
+    -fx-text-fill: #667eea;
 }

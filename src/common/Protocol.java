@@ -45,5 +45,15 @@ public class Protocol {
     // Game Room
     public static final String GAME_ROOM_CREATED = "game room created";         // Server → Client: Phòng game đã tạo
     public static final String ROUND_START = "round start";                     // Server → Client: Bắt đầu vòng đấu
-    // Có thể dùng LEADERBOARD_DATA để trả về kết quả tìm kiếm (danh sách user hoặc rỗng)
+    public static final String SUBMIT_WORD = "submit word";                     // Client → Server: Nộp từ
+    public static final String ROUND_RESULT = "round result";                   // Server → Client: Kết quả submit trong round
+    public static final String ROUND_END = "round end";                         // Server → Client: Kết thúc round
+    public static final String PLAYER_READY = "player ready";                   // Client → Server: Người chơi sẵn sàng cho round tiếp theo
+    public static final String GAME_END = "game end";                           // Server → Client: Kết thúc game
+    public static final String FORFEIT_GAME = "forfeit game";                   // Client → Server: Đầu hàng/thoát trận
+    public static final String OPPONENT_FORFEITED = "opponent forfeited";       // Server → Client: Đối thủ đã thoát trận
+    
+    // Emote system
+    public static final String SEND_EMOTE = "send emote";                       // Client → Server: Gửi biểu tượng cảm xúc
+    public static final String RECEIVE_EMOTE = "receive emote";                 // Server → Client: Nhận biểu tượng cảm xúc từ đối thủ
 }

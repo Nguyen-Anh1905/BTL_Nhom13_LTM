@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" prefHeight="280.0" prefWidth="450.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.InviteDialogController">
+<VBox alignment="CENTER" maxHeight="350.0" maxWidth="550.0" minHeight="250.0" minWidth="350.0" prefHeight="280.0" prefWidth="450.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.InviteDialogController">
    <children>
       <Label text="🎮" textFill="#4CAF50">
          <font>
@@ -50,12 +50,12 @@
       
       <HBox alignment="CENTER" spacing="20.0">
          <children>
-            <Button fx:id="btnAccept" mnemonicParsing="false" onAction="#handleAccept" prefHeight="45.0" prefWidth="150.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;" text="Chấp nhận">
+            <Button fx:id="btnAccept" maxWidth="180.0" mnemonicParsing="false" onAction="#handleAccept" prefHeight="50.0" prefWidth="150.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;" text="✅ Chấp Nhận" HBox.hgrow="ALWAYS">
                <font>
                   <Font name="System Bold" size="16.0" />
                </font>
             </Button>
-            <Button fx:id="btnReject" mnemonicParsing="false" onAction="#handleReject" prefHeight="45.0" prefWidth="150.0" style="-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;" text="Từ chối">
+            <Button fx:id="btnReject" maxWidth="180.0" mnemonicParsing="false" onAction="#handleReject" prefHeight="50.0" prefWidth="150.0" style="-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;" text="❌ Từ Chối" HBox.hgrow="ALWAYS">
                <font>
                   <Font name="System Bold" size="16.0" />
                </font>

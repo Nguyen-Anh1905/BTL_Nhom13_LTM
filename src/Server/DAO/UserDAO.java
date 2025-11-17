@@ -115,6 +115,56 @@ public class UserDAO {
             return false;
         }
     }
+    
+    // Cập nhật điểm và thống kê sau trận đấu
+    // result: "win", "lose", "draw"
+    public boolean updateUserStats(int userId, String result) {
+        String sql;
+        if ("win".equals(result)) {
+            sql = "UPDATE users SET total_points = total_points + 2, total_wins = total_wins + 1, updated_at = NOW() WHERE user_id = ?";
+        } else if ("draw".equals(result)) {
+            sql = "UPDATE users SET total_points = total_points + 1, total_draws = total_draws + 1, updated_at = NOW() WHERE user_id = ?";
+        } else if ("lose".equals(result)) {
+            sql = "UPDATE users SET total_losses = total_losses + 1, updated_at = NOW() WHERE user_id = ?";
+        } else {
+            return false;
+        }
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, userId);
+            int rows = stmt.executeUpdate();
+            System.out.println("[UserDAO] Updated stats for userId " + userId + " - Result: " + result + " - Rows: " + rows);
+            return rows > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("[UserDAO] Update stats FAILED for userId " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Lấy username từ userId
+    public String getUsernameById(int userId) {
+        String sql = "SELECT username FROM users WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("username");
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("[UserDAO] Get username FAILED for userId " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     // Lấy danh sách người chơi online từ view online_players
     public List<Users> getOnlinePlayersFromView() {
         List<Users> onlinePlayers = new ArrayList<>();

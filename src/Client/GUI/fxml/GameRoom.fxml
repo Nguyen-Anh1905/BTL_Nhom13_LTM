@@ -8,36 +8,47 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" stylesheets="@../css/GameRoom.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.GameRoomController">
+<AnchorPane minHeight="600.0" minWidth="900.0" prefHeight="700.0" prefWidth="1000.0" stylesheets="@../css/GameRoom.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.GameRoomController">
    <children>
-      <VBox prefHeight="700.0" prefWidth="1000.0" spacing="0.0">
+      <StackPane AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <children>
-            <!-- Header with scores -->
-            <HBox alignment="CENTER" prefHeight="80.0" spacing="50.0" style="-fx-background-color: #673AB7; -fx-padding: 10;">
+            <!-- Main Game Container -->
+            <VBox fx:id="vboxGameContainer" spacing="0.0" VBox.vgrow="ALWAYS">
                <children>
-                  <!-- Player 1 Info -->
-                  <VBox alignment="CENTER" prefWidth="250.0" spacing="5.0">
+                  <!-- Header with scores -->
+                  <HBox alignment="CENTER" prefHeight="80.0" spacing="50.0" style="-fx-background-color: #673AB7; -fx-padding: 10;">
+               <children>
+                  <!-- Player 1 Section with Emote -->
+                  <HBox alignment="CENTER" spacing="15.0">
                      <children>
-                        <Label fx:id="lblPlayer1Name" text="Bạn" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                        </Label>
-                        <Label fx:id="lblPlayer1Score" text="Điểm: 0" textFill="#FFD54F">
-                           <font>
-                              <Font name="System Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <Label fx:id="lblPlayer1RoundWins" text="Thắng: 0 vòng" textFill="WHITE">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
-                        </Label>
+                        <!-- Player 1 Info -->
+                        <VBox alignment="CENTER" prefWidth="250.0" spacing="5.0">
+                           <children>
+                              <Label fx:id="lblPlayer1Name" text="Bạn" textFill="WHITE">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblPlayer1Score" text="Điểm: 0" textFill="#FFD54F">
+                                 <font>
+                                    <Font name="System Bold" size="24.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblPlayer1RoundWins" text="Thắng: 0 vòng" textFill="WHITE">
+                                 <font>
+                                    <Font size="12.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </VBox>
+                        <!-- Player 1 Emote (right side) -->
+                        <javafx.scene.image.ImageView fx:id="imgPlayer1Emote" fitWidth="100.0" fitHeight="100.0" preserveRatio="true" visible="false" />
                      </children>
-                  </VBox>
+                  </HBox>
 
                   <!-- VS Label -->
                   <Label text="VS" textFill="#FFD54F">
@@ -46,26 +57,33 @@
                      </font>
                   </Label>
 
-                  <!-- Player 2 Info -->
-                  <VBox alignment="CENTER" prefWidth="250.0" spacing="5.0">
+                  <!-- Player 2 Section with Emote -->
+                  <HBox alignment="CENTER" spacing="15.0">
                      <children>
-                        <Label fx:id="lblPlayer2Name" text="Đối thủ" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                        </Label>
-                        <Label fx:id="lblPlayer2Score" text="Điểm: 0" textFill="#FFD54F">
-                           <font>
-                              <Font name="System Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <Label fx:id="lblPlayer2RoundWins" text="Thắng: 0 vòng" textFill="WHITE">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
-                        </Label>
+                        <!-- Player 2 Emote (left side) -->
+                        <javafx.scene.image.ImageView fx:id="imgPlayer2Emote" fitWidth="100.0" fitHeight="100.0" preserveRatio="true" visible="false" />
+                        <!-- Player 2 Info -->
+                        <VBox alignment="CENTER" prefWidth="250.0" spacing="5.0">
+                           <children>
+                              <Label fx:id="lblPlayer2Name" text="Đối thủ" textFill="WHITE">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblPlayer2Score" text="Điểm: 0" textFill="#FFD54F">
+                                 <font>
+                                    <Font name="System Bold" size="24.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblPlayer2RoundWins" text="Thắng: 0 vòng" textFill="WHITE">
+                                 <font>
+                                    <Font size="12.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </VBox>
                      </children>
-                  </VBox>
+                  </HBox>
                </children>
             </HBox>
 
@@ -87,97 +105,119 @@
             </HBox>
 
             <!-- Available Letters (Drag Source) -->
-            <VBox alignment="CENTER" prefHeight="150.0" spacing="10.0" style="-fx-background-color: #EDE7F6; -fx-padding: 15;">
+            <VBox fx:id="vboxGamePlayArea" alignment="CENTER" prefHeight="350.0" spacing="10.0" style="-fx-background-color: #EDE7F6; -fx-padding: 15;">
                <children>
-                  <Label text="CHỮ CÁI CÓ SẴN:" textFill="#512DA8">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-                  <FlowPane fx:id="flowAvailableLetters" alignment="CENTER" hgap="10.0" prefHeight="80.0" prefWidth="900.0" vgap="10.0">
-                     <!-- Letter buttons will be added dynamically - can drag these -->
-                  </FlowPane>
+                  <!-- Letters Section -->
+                  <VBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Label text="CHỮ CÁI CÓ SẴN:" textFill="#512DA8">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
+                        <FlowPane fx:id="flowAvailableLetters" alignment="CENTER" hgap="10.0" prefHeight="80.0" prefWidth="900.0" vgap="10.0">
+                           <!-- Letter buttons will be added dynamically -->
+                        </FlowPane>
+                     </children>
+                  </VBox>
+
+                  <!-- Word Input Area -->
+                  <VBox alignment="CENTER" spacing="15.0" style="-fx-padding: 20;">
+                     <children>
+                        <Label text="Nhập từ của bạn:" textFill="#512DA8">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
+                        
+                        <!-- Drop Zones for letters -->
+                        <HBox fx:id="hboxDropZones" alignment="CENTER" spacing="10.0">
+                           <!-- Empty slots will be added dynamically -->
+                        </HBox>
+                        
+                        <HBox alignment="CENTER" spacing="15.0">
+                           <children>
+                              <Button fx:id="btnSubmitWord" onAction="#handleSubmitWord" text="GỬI" styleClass="btn-submit">
+                                 <font>
+                                    <Font name="System Bold" size="16.0" />
+                                 </font>
+                              </Button>
+                              <Button fx:id="btnClearWord" onAction="#handleClearWord" text="XÓA" styleClass="btn-clear">
+                                 <font>
+                                    <Font name="System Bold" size="16.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
                </children>
             </VBox>
 
-            <!-- Word Input Area (Drop Zones) -->
-            <VBox alignment="CENTER" prefHeight="200.0" spacing="15.0" style="-fx-background-color: #F5F5F5; -fx-padding: 20;">
-               <children>
-                  <Label text="Nhập từ của bạn:" textFill="#512DA8">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-                  
-                  <!-- Drop Zones for letters -->
-                  <HBox fx:id="hboxDropZones" alignment="CENTER" spacing="10.0">
-                     <!-- Empty slots like: _ _ _ _ _ will be added dynamically -->
-                  </HBox>
-                  
-                  <HBox alignment="CENTER" spacing="15.0">
-                     <children>
-                        <Button fx:id="btnSubmitWord" onAction="#handleSubmitWord" text="GỬI" styleClass="btn-submit">
-                           <font>
-                              <Font name="System Bold" size="16.0" />
-                           </font>
-                        </Button>
-                        <Button fx:id="btnClearWord" onAction="#handleClearWord" text="XÓA" styleClass="btn-clear">
-                           <font>
-                              <Font name="System Bold" size="16.0" />
-                           </font>
-                        </Button>
-                     </children>
-                  </HBox>
-               </children>
+            <!-- Round Result Container (Hidden by default) -->
+            <VBox fx:id="vboxRoundResult" alignment="CENTER" prefHeight="350.0" spacing="20.0" style="-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #667eea 0%, #764ba2 100%); -fx-padding: 30;" visible="false" managed="false">
+               <!-- Content will be populated dynamically -->
             </VBox>
 
             <!-- Emotions and Actions -->
-            <HBox alignment="CENTER" prefHeight="60.0" spacing="20.0" style="-fx-background-color: #F5F5F5; -fx-padding: 10;">
+            <HBox alignment="CENTER" prefHeight="100.0" spacing="10.0" style="-fx-background-color: #F5F5F5; -fx-padding: 10;">
                <children>
-                  <Label text="Biểu tượng cảm xúc:" textFill="#616161">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </Label>
-                  <Button fx:id="btnEmoteLike" mnemonicParsing="false" onAction="#handleEmoteLike" prefHeight="40.0" prefWidth="50.0" text="👍">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="btnEmoteHeart" mnemonicParsing="false" onAction="#handleEmoteHeart" prefHeight="40.0" prefWidth="50.0" text="❤️">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="btnEmoteDislike" mnemonicParsing="false" onAction="#handleEmoteDislike" prefHeight="40.0" prefWidth="50.0" text="👎">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="btnEmoteSurprise" mnemonicParsing="false" onAction="#handleEmoteSurprise" prefHeight="40.0" prefWidth="50.0" text="😲">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  
-                  <Label fx:id="lblOpponentEmote" text="" textFill="#FF5722">
-                     <font>
-                        <Font size="30.0" />
-                     </font>
-                  </Label>
-                  
-                  <HBox alignment="CENTER_RIGHT" spacing="10.0" HBox.hgrow="ALWAYS">
+                  <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
                      <children>
+                        <Label text="Biểu tượng cảm xúc:" textFill="#616161">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                        </Label>
+                        <!-- Icon selection area -->
+                        <HBox fx:id="hboxEmoteIcons" alignment="CENTER" spacing="8.0" prefHeight="60.0">
+                           <!-- Icons will be loaded dynamically -->
+                        </HBox>
+                     </children>
+                  </VBox>
+                  
+                  <VBox alignment="CENTER_RIGHT" spacing="5.0">
+                     <children>
+                        <!-- Emote display for current player -->
+                        <HBox fx:id="hboxMyEmote" alignment="CENTER_RIGHT" spacing="5.0" visible="false">
+                           <children>
+                              <Label fx:id="lblMyName" text="" textFill="#667eea" style="-fx-font-weight: bold;">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Label>
+                              <javafx.scene.image.ImageView fx:id="imgMyEmote" fitWidth="50.0" fitHeight="50.0" preserveRatio="true" />
+                           </children>
+                        </HBox>
+                        <!-- Emote display for opponent -->
+                        <HBox fx:id="hboxOpponentEmote" alignment="CENTER_RIGHT" spacing="5.0" visible="false">
+                           <children>
+                              <Label fx:id="lblOpponentName" text="" textFill="#FF5722" style="-fx-font-weight: bold;">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Label>
+                              <javafx.scene.image.ImageView fx:id="imgOpponentEmote" fitWidth="50.0" fitHeight="50.0" preserveRatio="true" />
+                           </children>
+                        </HBox>
+                        
                         <Button mnemonicParsing="false" onAction="#handleExitGame" style="-fx-background-color: #F44336;" text="Thoát khỏi phòng" textFill="WHITE">
                            <font>
                               <Font name="System Bold" size="13.0" />
                            </font>
                         </Button>
                      </children>
-                  </HBox>
+                  </VBox>
                </children>
             </HBox>
          </children>
       </VBox>
+
+      <!-- Game End Screen (Hidden by default) -->
+      <VBox fx:id="vboxGameEnd" alignment="CENTER" prefHeight="700.0" prefWidth="1000.0" spacing="30.0" style="-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #667eea 0%, #764ba2 100%);" visible="false" managed="false">
+         <!-- Content will be populated dynamically -->
+      </VBox>
+         </children>
+      </StackPane>
    </children>
 </AnchorPane>

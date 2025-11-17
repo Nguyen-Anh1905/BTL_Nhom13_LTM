@@ -15,6 +15,7 @@ public class Matches {
     private int player2RoundsWon;
     private Integer winnerId;
     private String result;
+    private int draw;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
 
@@ -25,7 +26,7 @@ public class Matches {
     // Constructor đầy đủ
     public Matches(int matchId, int player1Id, int player2Id, String matchStatus,
                    int totalRounds, int player1RoundsWon, int player2RoundsWon,
-                   Integer winnerId, String result, LocalDateTime startedAt, LocalDateTime endedAt) {
+                   Integer winnerId, String result, LocalDateTime startedAt, LocalDateTime endedAt, int draw) {
         this.matchId = matchId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
@@ -37,6 +38,7 @@ public class Matches {
         this.result = result;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
+        this.draw = draw;
     }
 
     // Constructor không có ID (dùng khi insert mới)
@@ -49,7 +51,18 @@ public class Matches {
         this.player2RoundsWon = 0;
     }
 
+
     // Getters
+
+
+    public int getDraw() {
+        return draw;
+    }
+
+    public void setDraw(int draw) {
+        this.draw = draw;
+    }
+
     public int getMatchId() {
         return matchId;
     }
