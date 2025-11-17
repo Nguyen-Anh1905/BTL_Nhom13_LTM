@@ -3,21 +3,16 @@ package Server.DAO;
 
 import Server.model.Matches;
 import Server.model.Users;
+import common.DatabaseConnection;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class UserDAO {
     
-    
-    // Thông tin kết nối database
-    private static final String URL = "jdbc:mysql://localhost:3306/gamevtv";
-    private static final String USER = "root";
-    private static final String PASSWORD = "cuong1804sv@";
-    
     // Lấy connection
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        return DatabaseConnection.getConnection();
     }
     
     // Kiểm tra username đã tồn tại chưa
@@ -266,7 +261,7 @@ public class UserDAO {
     // Lấy thông tin lịch sử đấu của User đang đăng nhập
     public List<Matches> searchMatchesByUserId(int userId) {
         List<Matches> results = new ArrayList<>();
-        String sql = "SELECT * FROM matches WHERE player1_id = ? OR player2_id = ?";
+        String sql = "SELECT * FROM matches WHERE player1_id = ? OR player2_id = ? ORDER BY started_at DESC";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 

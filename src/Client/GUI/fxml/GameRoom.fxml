@@ -149,6 +149,14 @@
                               </Button>
                            </children>
                         </HBox>
+                        
+                        <!-- Submit Result Label -->
+                        <Label fx:id="lblSubmitResult" alignment="CENTER" maxWidth="Infinity" minHeight="40.0" text="" wrapText="true" 
+                               style="-fx-background-color: transparent; -fx-padding: 10; -fx-background-radius: 8;">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
                      </children>
                   </VBox>
                </children>

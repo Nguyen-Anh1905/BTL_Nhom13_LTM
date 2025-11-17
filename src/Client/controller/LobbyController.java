@@ -158,14 +158,26 @@ public class LobbyController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         System.out.println("Lobby Controller đã khởi tạo!");
-        // Listen to tab changes: when History tab is selected, auto request match history
+        // Listen to tab changes: auto request data when switching tabs
         try {
             if (tabPane != null) {
                 tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-                    if (newTab != null && "Lịch sử đấu".equals(newTab.getText())) {
-                        System.out.println("History tab selected -> requesting match history...");
-                        if (client != null && currentUser != null) {
-                            client.sendMessage(new common.Message(common.Protocol.GET_MATCH_HISTORY, currentUser.getUsername()));
+                    if (newTab != null) {
+                        if ("Người chơi Online".equals(newTab.getText())) {
+                            System.out.println("Online players tab selected -> requesting player list...");
+                            if (client != null) {
+                                client.sendMessage(new common.Message(common.Protocol.GET_PLAYER_LIST, null));
+                            }
+                        } else if ("Lịch sử đấu".equals(newTab.getText())) {
+                            System.out.println("History tab selected -> requesting match history...");
+                            if (client != null && currentUser != null) {
+                                client.sendMessage(new common.Message(common.Protocol.GET_MATCH_HISTORY, currentUser.getUsername()));
+                            }
+                        } else if ("Bảng xếp hạng".equals(newTab.getText())) {
+                            System.out.println("Leaderboard tab selected -> requesting leaderboard...");
+                            if (client != null) {
+                                client.sendMessage(new common.Message(common.Protocol.GET_LEADERBOARD_POINTS, null));
+                            }
                         }
                     }
                 });
@@ -175,15 +187,15 @@ public class LobbyController implements Initializable {
         }
         
     // Set up cell value factories cho TableView người chơi (Lobby - online players)
-    // Use explicit cell value factories to avoid reflection issues
-    if (colUsername != null) colUsername.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getUsername()));
-    if (colTotalPoints != null) colTotalPoints.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalPoints()).asObject());
-    if (colWins != null) colWins.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalWins()).asObject());
-    if (colDraws != null) colDraws.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalDraws()).asObject());
-    if (colLosses != null) colLosses.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalLosses()).asObject());
-    if (colStatus != null) colStatus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStatus()));
+    // Use PropertyValueFactory for proper JavaFX binding
+    if (colUsername != null) colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
+    if (colTotalPoints != null) colTotalPoints.setCellValueFactory(new PropertyValueFactory<>("totalPoints"));
+    if (colWins != null) colWins.setCellValueFactory(new PropertyValueFactory<>("totalWins"));
+    if (colDraws != null) colDraws.setCellValueFactory(new PropertyValueFactory<>("totalDraws"));
+    if (colLosses != null) colLosses.setCellValueFactory(new PropertyValueFactory<>("totalLosses"));
+    if (colStatus != null) colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-    // Set up cell value factories cho bảng xếp hạng (nếu cần)
+    // Set up cell value factories cho bảng xếp hạng
     if (colPlayerName != null) colPlayerName.setCellValueFactory(new PropertyValueFactory<>("username"));
     if (colPoints != null) colPoints.setCellValueFactory(new PropertyValueFactory<>("totalPoints"));
     if (colTotalWins != null) colTotalWins.setCellValueFactory(new PropertyValueFactory<>("totalWins"));
@@ -310,6 +322,13 @@ public class LobbyController implements Initializable {
         }
         
         System.out.println("Thông tin user đã được cập nhật: " + user.getUsername());
+        
+        // Auto-request data sau khi user được set (controller đã sẵn sàng)
+        if (client != null) {
+            System.out.println("LobbyController: Auto-requesting initial data...");
+            client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
+            client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
+        }
     }
     // Xử lý nút Đăng xuất
     @FXML
@@ -338,16 +357,30 @@ public class LobbyController implements Initializable {
             }
         } else {
             tblPlayers.getItems().clear();
+            // Set inline style to ensure visibility
+            tblPlayers.setStyle("-fx-text-fill: #000000;");
             tblPlayers.getItems().addAll(onlinePlayers);
             // Debug: print each user being added
             for (Users u : onlinePlayers) {
-                System.out.println("updatePlayerList - user: " + u.getUsername() + ", points=" + u.getTotalPoints() + ", wins=" + u.getTotalWins() + ", draws=" + u.getTotalDraws() + ", losses=" + u.getTotalLosses() + ", status=" + u.getStatus());
+                System.out.println("updatePlayerList - user: " + u.getUsername() + 
+                    ", userId=" + u.getUserId() + 
+                    ", points=" + u.getTotalPoints() + 
+                    ", wins=" + u.getTotalWins() + 
+                    ", draws=" + u.getTotalDraws() + 
+                    ", losses=" + u.getTotalLosses() + 
+                    ", status=" + u.getStatus());
+                // Check if this is current user
+                if (currentUser != null && u.getUserId() == currentUser.getUserId()) {
+                    System.out.println("  ^^^ This is the CURRENT USER! ^^^");
+                }
             }
             if (lblOnlineCount != null) {
                 lblOnlineCount.setText("Online: " + onlinePlayers.size() + " người chơi");
             }
+            tblPlayers.refresh(); // Force refresh
         }
         System.out.println("Đã cập nhật danh sách người chơi: " + (onlinePlayers != null ? onlinePlayers.size() : 0) + " người");
+        System.out.println("Current user ID in LobbyController: " + (currentUser != null ? currentUser.getUserId() : "NULL"));
     }
     
     // Xử lý sắp xếp bảng xếp hạng
@@ -677,8 +710,11 @@ public class LobbyController implements Initializable {
         if (tblLeaderboard != null) {
             System.out.println("LobbyController.updateLeaderboard called, list size = " + (leaderboard == null ? "null" : leaderboard.size()));
             tblLeaderboard.getItems().clear();
+            // Set inline style to ensure visibility
+            tblLeaderboard.setStyle("-fx-text-fill: #000000;");
             if (leaderboard != null) {
                 tblLeaderboard.getItems().addAll(leaderboard);
+                tblLeaderboard.refresh(); // Force refresh
                 System.out.println("Added " + leaderboard.size() + " users to tblLeaderboard");
                 if (leaderboard.isEmpty()) {
                     if (lblSearchResult != null) lblSearchResult.setText("Không tìm thấy người chơi");

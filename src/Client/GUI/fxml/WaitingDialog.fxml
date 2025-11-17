@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" maxHeight="320.0" maxWidth="500.0" minHeight="220.0" minWidth="300.0" prefHeight="250.0" prefWidth="400.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.WaitingDialogController">
+<VBox alignment="CENTER" prefHeight="250.0" prefWidth="400.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.controller.WaitingDialogController">
    <children>
       <!-- Icon hoặc hình ảnh chờ -->
       <Label text="⏳" textFill="#FF9800">

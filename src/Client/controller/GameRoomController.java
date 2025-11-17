@@ -51,6 +51,7 @@ public class GameRoomController implements Initializable {
     @FXML private Button btnClearWord;
     
     @FXML private Label lblOpponentEmote;
+    @FXML private Label lblSubmitResult;  // Label hiển thị kết quả submit
     
     // Emote system - inline display
     @FXML private HBox hboxEmoteIcons;
@@ -634,28 +635,35 @@ public class GameRoomController implements Initializable {
     // Hiển thị kết quả submit từ server
     public void showSubmitResult(boolean isValid, String meaning, int correctCount) {
         Platform.runLater(() -> {
+            if (lblSubmitResult == null) return;
+            
             if (isValid) {
                 System.out.println("✅ ĐÚNG! " + meaning + " (Tổng: " + correctCount + ")");
-                // Hiển thị thông báo trên UI
-                if (lblOpponentEmote != null) {
-                    lblOpponentEmote.setText("✅ Đúng! " + meaning);
-                    lblOpponentEmote.setStyle("-fx-text-fill: green; -fx-font-size: 16px;");
-                }
+                lblSubmitResult.setText("✅ ĐÚNG! Nghĩa: " + meaning + "  |  Tổng từ đúng: " + correctCount);
+                lblSubmitResult.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 8;");
             } else {
                 System.out.println("❌ SAI!");
-                if (lblOpponentEmote != null) {
-                    lblOpponentEmote.setText("❌ Sai!");
-                    lblOpponentEmote.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
-                }
+                lblSubmitResult.setText("❌ SAI! Từ không hợp lệ hoặc không có trong từ điển. Hãy thử lại!");
+                lblSubmitResult.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 8;");
             }
             
-            // Tự động xóa thông báo sau 2 giây
-            Timeline clearTimeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-                if (lblOpponentEmote != null) {
-                    lblOpponentEmote.setText("");
-                }
-            }));
-            clearTimeline.play();
+            // Hiệu ứng fade in
+            lblSubmitResult.setOpacity(0);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), lblSubmitResult);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1);
+            fadeIn.play();
+            
+            // Tự động fade out và xóa sau 3 giây
+            PauseTransition pause = new PauseTransition(Duration.seconds(3));
+            pause.setOnFinished(e -> {
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(500), lblSubmitResult);
+                fadeOut.setFromValue(1);
+                fadeOut.setToValue(0);
+                fadeOut.setOnFinished(event -> lblSubmitResult.setText(""));
+                fadeOut.play();
+            });
+            pause.play();
         });
     }
     
