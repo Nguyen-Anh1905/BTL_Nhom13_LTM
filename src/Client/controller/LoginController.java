@@ -1,6 +1,7 @@
 package Client.controller;
 
 import Client.Client;
+import Client.util.SoundManager;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -42,6 +43,7 @@ public class LoginController implements Initializable {
 
     @FXML
     private void handleLogin(ActionEvent event){
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         String username = txtUsername.getText().trim();        
         String password = txtPassword.getText().trim();
         
@@ -90,6 +92,7 @@ public class LoginController implements Initializable {
     
     @FXML
     private void handleBackToRegister(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         Platform.runLater(() -> {
             client.showRegisterUI((Stage) txtUsername.getScene().getWindow());
         });

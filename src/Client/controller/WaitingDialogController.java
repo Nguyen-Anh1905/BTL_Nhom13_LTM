@@ -1,6 +1,7 @@
 package Client.controller;
 
 import Client.Client;
+import Client.util.SoundManager;
 import common.*;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -62,6 +63,7 @@ public class WaitingDialogController {
     
     @FXML
     private void handleCancel() {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         // Dừng countdown
         if (timeline != null) {
             timeline.stop();

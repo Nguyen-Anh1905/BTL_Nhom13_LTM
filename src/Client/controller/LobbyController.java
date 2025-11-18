@@ -2,6 +2,7 @@ package Client.controller;
 
 import Client.Client;
 import Client.MessageHandler;
+import Client.util.SoundManager;
 import common.*;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -158,11 +159,18 @@ public class LobbyController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         System.out.println("Lobby Controller đã khởi tạo!");
+        
+        // Bắt đầu nhạc nền lobby
+        SoundManager.getInstance().startBackgroundMusic();
+        
         // Listen to tab changes: auto request data when switching tabs
         try {
             if (tabPane != null) {
                 tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
                     if (newTab != null) {
+                        // Phát âm thanh khi chuyển tab
+                        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
+                        
                         if ("Người chơi Online".equals(newTab.getText())) {
                             System.out.println("Online players tab selected -> requesting player list...");
                             if (client != null) {
@@ -228,6 +236,7 @@ public class LobbyController implements Initializable {
                 btnChallenge.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
                 
                 btnChallenge.setOnAction(event -> {
+                    SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
                     Users selectedUser = getTableView().getItems().get(getIndex());
                     try {
                         handleChallenge(selectedUser);
@@ -285,6 +294,7 @@ public class LobbyController implements Initializable {
 
                 {
                     btn.setOnAction(event -> {
+                        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
                         MatchHistoryResponse r = getTableView().getItems().get(getIndex());
                         if (r != null && client != null && currentUser != null) {
                             String payload = r.getMatchId() + ":" + currentUser.getUsername();
@@ -392,6 +402,7 @@ public class LobbyController implements Initializable {
     // Xử lý sắp xếp bảng xếp hạng
     @FXML
     private void handleSortByPoints(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         System.out.println("Sắp xếp theo điểm");
         // Gửi yêu cầu lấy bảng xếp hạng theo điểm
         client.sendMessage(new Message(Protocol.GET_LEADERBOARD_POINTS, null));
@@ -399,6 +410,7 @@ public class LobbyController implements Initializable {
     
     @FXML
     private void handleSortByWins(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         System.out.println("Sắp xếp theo thắng");
         // Gửi yêu cầu lấy bảng xếp hạng theo số trận thắng
         client.sendMessage(new Message(Protocol.GET_LEADERBOARD_WINS, null));
@@ -406,6 +418,7 @@ public class LobbyController implements Initializable {
 
     @FXML
     private void handleSearchLeaderboard(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         if (client == null) return;
         String q = txtSearchLeaderboard.getText();
         if (q == null || q.trim().isEmpty()) {
@@ -419,12 +432,14 @@ public class LobbyController implements Initializable {
 
     @FXML
     private void handleReloadPlayers(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         System.out.println("Reload players list");
         if (client != null) client.sendMessage(new Message(Protocol.GET_PLAYER_LIST, null));
     }
 
     @FXML
     private void handleSearchPlayers(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         if (client == null) return;
         String q = txtSearchPlayers.getText();
         if (q == null || q.trim().isEmpty()) {
@@ -437,6 +452,7 @@ public class LobbyController implements Initializable {
 
     @FXML
     private void handleReloadHistory(ActionEvent event) {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         System.out.println("Reload match history");
         if (client != null && currentUser != null) {
             client.sendMessage(new common.Message(common.Protocol.GET_MATCH_HISTORY, currentUser.getUsername()));
@@ -771,6 +787,9 @@ public class LobbyController implements Initializable {
     
     // Hiển thị InviteDialog khi nhận lời mời
     public void showInviteDialog(int inviterUserId, String inviterUsername) {
+        // Phát âm thanh thông báo khi nhận lời mời
+        SoundManager.getInstance().playSound(SoundManager.NOTIFICATION);
+        
         try {
             // Lưu thông tin người mời (đối thủ của người được mời)
             opponentName = inviterUsername;
@@ -827,6 +846,10 @@ public class LobbyController implements Initializable {
     // Hiển thị GameRoom
     private void showGameRoom(String opponentUsername) throws IOException {
         System.out.println("🎮 showGameRoom() called for opponent: " + opponentUsername);
+        
+        // Dừng nhạc nền lobby khi vào game
+        SoundManager.getInstance().stopBackgroundMusic();
+        
         // Load GameRoom FXML
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Client/GUI/fxml/GameRoom.fxml"));
         System.out.println("📄 Loading FXML...");

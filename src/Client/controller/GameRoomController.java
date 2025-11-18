@@ -2,6 +2,7 @@ package Client.controller;
 
 import Client.Client;
 import Client.MessageHandler;
+import Client.util.SoundManager;
 import common.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -223,6 +224,9 @@ public class GameRoomController implements Initializable {
     }
     
     private void xuLyClickChuCai(String chuCai, Button btnChuCai) {
+        // Phát âm thanh khi click chữ cái
+        SoundManager.getInstance().playSound(SoundManager.CLICK_CHAR);
+        
         // Tìm ô trống đầu tiên
         for (Label slot : dropZoneSlots) {
             if (slot.getText().equals("_")) {
@@ -270,6 +274,7 @@ public class GameRoomController implements Initializable {
     
     @FXML
     private void handleSubmitWord() {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         // Kiểm tra xem round có đang active không
         if (!isRoundActive) {
             System.out.println("⚠️ Round đã kết thúc, không thể submit!");
@@ -304,6 +309,7 @@ public class GameRoomController implements Initializable {
     
     @FXML
     private void handleClearWord() {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         // Xóa tất cả chữ đã điền và reset về trạng thái ban đầu
         for (Label slot : dropZoneSlots) {
             slot.setText("_");
@@ -331,8 +337,14 @@ public class GameRoomController implements Initializable {
             // Tính progress bar dựa trên totalTime
             progressTimer.setProgress((double) timeRemaining / totalTime);
             
+            // Bắt đầu âm thanh cảnh báo khi còn 8 giây
+            if (timeRemaining == 8) {
+                SoundManager.getInstance().startTimerWarning();
+            }
+            
             if (timeRemaining <= 0) {
                 gameTimer.stop();
+                SoundManager.getInstance().stopTimerWarning(); // Dừng âm thanh
                 xuLyHetGio();
             }
         }));
@@ -343,6 +355,7 @@ public class GameRoomController implements Initializable {
     private void xuLyHetGio() {
         System.out.println("⏰ Hết giờ vòng " + currentRound);
         isRoundActive = false; // Tắt flag khi hết giờ
+        SoundManager.getInstance().stopTimerWarning(); // Dừng âm thanh nếu còn chạy
         // Server sẽ tự động gửi ROUND_END
     }
     
@@ -391,7 +404,10 @@ public class GameRoomController implements Initializable {
                     iconBtn.setOnMouseExited(e -> iconBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5; -fx-padding: 5;"));
                     
                     String fileName = iconFile.getName();
-                    iconBtn.setOnAction(e -> sendEmote(fileName));
+                    iconBtn.setOnAction(e -> {
+                        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
+                        sendEmote(fileName);
+                    });
                     
                     hboxEmoteIcons.getChildren().add(iconBtn);
                     System.out.println("✅ Loaded icon: " + fileName);
@@ -510,6 +526,7 @@ public class GameRoomController implements Initializable {
     
     @FXML
     private void handleExitGame() {
+        SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
         triggerExitGame();
     }
     
@@ -536,6 +553,9 @@ public class GameRoomController implements Initializable {
         if (gameTimer != null) {
             gameTimer.stop();
         }
+        
+        // Bật lại nhạc nền lobby
+        SoundManager.getInstance().startBackgroundMusic();
         
         // Lấy stage hiện tại
         Stage currentStage = (Stage) lblPlayer1Name.getScene().getWindow();
@@ -634,6 +654,13 @@ public class GameRoomController implements Initializable {
     
     // Hiển thị kết quả submit từ server
     public void showSubmitResult(boolean isValid, String meaning, int correctCount) {
+        // Phát âm thanh tương ứng
+        if (isValid) {
+            SoundManager.getInstance().playSound(SoundManager.CORRECT_ANSWER);
+        } else {
+            SoundManager.getInstance().playSound(SoundManager.INCORRECT_ANSWER);
+        }
+        
         Platform.runLater(() -> {
             if (lblSubmitResult == null) return;
             
@@ -684,6 +711,9 @@ public class GameRoomController implements Initializable {
     
     // Xử lý khi round kết thúc
     public void onRoundEnd(int roundWinnerId, int myCount, int oppCount, String myWords, String oppWords) {
+        // Dừng timer warning ngay lập tức khi round kết thúc
+        SoundManager.getInstance().stopTimerWarning();
+        
         Platform.runLater(() -> {
             System.out.println("🏁 Round " + currentRound + " kết thúc!");
             System.out.println("  - Người thắng: " + roundWinnerId);
@@ -924,6 +954,10 @@ public class GameRoomController implements Initializable {
     
     // Xử lý khi game kết thúc
     public void onGameEnd(int gameWinnerId, int roundWinsP1, int roundWinsP2) {
+        // Phát âm thanh chiến thắng
+        SoundManager.getInstance().playSound(SoundManager.VICTORY);
+        SoundManager.getInstance().stopTimerWarning(); // Dừng timer warning nếu còn
+        
         Platform.runLater(() -> {
             System.out.println("🎉 GAME KẾT THÚC!");
             System.out.println("  - Người thắng: " + gameWinnerId);
@@ -1253,7 +1287,10 @@ public class GameRoomController implements Initializable {
                     "-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 30; " +
                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0, 0, 5);"
                 ));
-                btnBackToLobby.setOnAction(e -> returnToLobby());
+                btnBackToLobby.setOnAction(e -> {
+                    SoundManager.getInstance().playSound(SoundManager.BUTTON_CLICK, 0.4);
+                    returnToLobby();
+                });
                 
                 vboxGameEnd.getChildren().addAll(lblIcon, lblResult, scoreBox, detailBox, btnBackToLobby);
                 

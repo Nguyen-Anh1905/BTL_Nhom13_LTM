@@ -2,6 +2,9 @@
 
 .root {
     -fx-font-family: "Segoe UI", "Roboto", Arial, sans-serif;
+    /* Loại bỏ viền focus (outline) cho toàn bộ ứng dụng */
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 /* ========== TABLE VIEW - BASIC STYLING ========== */
@@ -35,6 +38,9 @@
     -fx-padding: 10 20 10 20;
     -fx-font-size: 13px;
     -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.3), 5, 0, 0, 2);
+    /* Loại bỏ viền focus */
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .button:hover {
@@ -46,6 +52,67 @@
 .button:pressed {
     -fx-background-color: #5a3d8a;
     -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.5), 3, 0, 0, 1);
+}
+
+.button:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* ========== TAB PANE STYLING ========== */
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: linear-gradient(to bottom, #1a2a6c 0%, #2a3f7e 100%);
+    -fx-padding: 5 10 0 10;
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: rgba(102, 126, 234, 0.3);
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: rgba(102, 126, 234, 0.5);
+}
+
+.tab-pane .tab:hover .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #667eea 0%, #764ba2 100%);
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* Loại bỏ viền focus khi click vào tab */
+.tab-pane .tab:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2 0 0 0;
 }
 
 /* Nút Reload - màu xanh lá */

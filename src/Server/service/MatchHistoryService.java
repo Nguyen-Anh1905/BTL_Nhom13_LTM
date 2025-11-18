@@ -40,7 +40,7 @@ public class MatchHistoryService {
 			else if(m.getWinnerId() == -1) r.setMatchResult("Draw");
 			else r.setMatchResult("Lose");
 
-			// Tạo score dạng "x - y" (điểm = số round thắng + số draw)
+			// score dạng "x - y" (điểm = số round thắng + số draw)
 			int userRounds = (m.getPlayer1Id() == userId) ? m.getPlayer1RoundsWon() : m.getPlayer2RoundsWon();
 			int oppRounds = (m.getPlayer1Id() == userId) ? m.getPlayer2RoundsWon() : m.getPlayer1RoundsWon();
 			int drawCount = m.getDraw();

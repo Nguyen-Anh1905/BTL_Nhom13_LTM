@@ -12,7 +12,6 @@ public class MatchDetails {
     private int letterId;
     private int player1WordsCount;
     private int player2WordsCount;
-    private Integer winnerId;
     private String roundStatus;
     private String player1Dic;
     private String player2Dic;
@@ -27,7 +26,7 @@ public class MatchDetails {
     // Constructor đầy đủ
     public MatchDetails(int detailId, int matchId, int roundNumber, int letterId,
                         int player1WordsCount,
-                        int player2WordsCount, Integer winnerId, String roundStatus,
+                        int player2WordsCount, String roundStatus,
                         LocalDateTime startedAt, LocalDateTime endedAt, LocalDateTime createdAt) {
         this.detailId = detailId;
         this.matchId = matchId;
@@ -35,7 +34,6 @@ public class MatchDetails {
         this.letterId = letterId;
         this.player1WordsCount = player1WordsCount;
         this.player2WordsCount = player2WordsCount;
-        this.winnerId = winnerId;
         this.roundStatus = roundStatus;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
@@ -83,10 +81,6 @@ public class MatchDetails {
 
     public int getPlayer2WordsCount() {
         return player2WordsCount;
-    }
-
-    public Integer getWinnerId() {
-        return winnerId;
     }
 
     public String getRoundStatus() {
@@ -138,10 +132,6 @@ public class MatchDetails {
         this.player2WordsCount = player2WordsCount;
     }
 
-    public void setWinnerId(Integer winnerId) {
-        this.winnerId = winnerId;
-    }
-
     public void setRoundStatus(String roundStatus) {
         this.roundStatus = roundStatus;
     }
@@ -167,7 +157,6 @@ public class MatchDetails {
                 ", letterId=" + letterId +
                 ", player1WordsCount=" + player1WordsCount +
                 ", player2WordsCount=" + player2WordsCount +
-                ", winnerId=" + winnerId +
                 ", roundStatus='" + roundStatus + '\'' +
                 ", startedAt=" + startedAt +
                 ", endedAt=" + endedAt +

@@ -59,28 +59,23 @@ public class Gameroom {
         match.setPlayer2Id(player2Id);
         match.setMatchStatus("playing");
         match.setTotalRounds(3);
+
+        // thêm match vào db
         this.matchId = matchesDAO.insert(match);
-        System.out.println("💾 [DB] Đã tầo Matches - matchId: " + matchId + ", status: playing");
+
         
         if (this.matchId == -1) {
-            System.err.println("❌ [ERROR] Không thể tạo match trong DB! Game sẽ không lưu được.");
-            // Vẫn tiếp tục game nhưng không lưu DB
+            System.err.println("Không tạo được match trong DB! ");
         }
 
         // Random 3 letters từ DB
         List<Letters> allLetters = letterDAO.findAll();
         if (allLetters.isEmpty()) {
-            System.err.println("CẢNH BÁO: Không có letters trong DB!");
             return;
         }
         Collections.shuffle(allLetters);
         int count = Math.min(3, allLetters.size());
         this.letters = new ArrayList<>(allLetters.subList(0, count));
-        
-        System.out.println("✅ Đã random " + letters.size() + " letters cho match " + matchId);
-        for (Letters l : letters) {
-            System.out.println("  - Letter ID " + l.getLetterId() + ": " + l.getLetterDetail());
-        }
 
         // Init counts
         correctWordsCount.put(player1Id, 0);
@@ -93,27 +88,34 @@ public class Gameroom {
         if (currentRound > 3) return;
         Letters currentLetter = letters.get(currentRound - 1);
         
-        // Load dictionary MỚI cho round này từ DB
+        // lấy list word đúng từ db
         List<String> words = dictionaryDAO.getWordsByLetterId(currentLetter.getLetterId());
         currentDictionary = new ArrayList<>(words);
-        for(String word : currentDictionary) {
-            System.out.println("từ thứ nhất: " + word);
-
-        }
-        System.out.println("📚 Loaded " + currentDictionary.size() + " words cho round " + currentRound);
         
-        // Reset used word IDs cho MỖI NGƯỜI CHƠI
+        // Reset used word IDs cho mỗi player
         usedWordIdsByPlayer.put(player1Id, new HashSet<>());
         usedWordIdsByPlayer.put(player2Id, new HashSet<>());
         
+        // INSERT match_detail với started_at = NOW() khi bắt đầu round
+        if (matchId > 0) {
+            MatchDetails detail = new MatchDetails();
+            detail.setMatchId(matchId);
+            detail.setRoundNumber(currentRound);
+            detail.setLetterId(currentLetter.getLetterId());
+            detail.setPlayer1WordsCount(0);
+            detail.setPlayer2WordsCount(0);
+            detail.setPlayer1Dic("");
+            detail.setPlayer2Dic("");
+            detail.setRoundStatus("playing");
+            matchDetailDAO.insert(detail);
+            System.out.println("✅ Inserted match_detail for round " + currentRound + " with started_at");
+        }
+        
         // Gửi ROUND_START đến cả hai client
         String payload = currentLetter.getLetterDetail() + ":" + currentLetter.getLengthWord() + ":" + currentLetter.getTimeRound();
-        System.out.println("🎮 ROUND_START Round " + currentRound + " - Payload: " + payload);
         
         sendToPlayer(player1Id, new Message(Protocol.ROUND_START, payload));
         sendToPlayer(player2Id, new Message(Protocol.ROUND_START, payload));
-        
-        System.out.println("✅ Đã gửi ROUND_START đến player " + player1Id + " và " + player2Id);
 
         // Start timer
         timerExecutor.schedule(this::endRound, currentLetter.getTimeRound(), TimeUnit.SECONDS);
@@ -122,7 +124,7 @@ public class Gameroom {
     // so sánh word vừa nhập
     public void submitWord(int playerId, String word) {
         if (gameEnded) {
-            System.out.println("⚠️ Game đã kết thúc, bỏ qua submitWord");
+            System.out.println("Game đã kết thúc, bỏ qua submitWord");
             return;
         }
         
@@ -179,11 +181,10 @@ public class Gameroom {
             roundWins.put(player2Id, roundWins.get(player2Id) + 1);
             winnerId = player2Id;
         } else {
-            // Hòa - cộng drawRounds, winnerId = -1 (sẽ chuyển thành NULL trong DB)
+            // Hòa - cộng drawRounds, winnerId = -1 
             drawRounds++;
-            winnerId = -1; // -1 để biết là hòa, nhưng sẽ lưu NULL vào DB
+            winnerId = -1; // lưu null trong db hòa
         }
-        // Nếu hòa, không cộng roundWins cho ai
 
         // Lưu MatchDetail
         MatchDetails detail = new MatchDetails();
@@ -207,25 +208,21 @@ public class Gameroom {
         detail.setPlayer2Dic(p2WordIds);
         System.out.println("🔍 Debug - Player2Id: " + player2Id + ", WordIds: " + p2WordIds);
         
-        detail.setWinnerId(winnerId);
         detail.setRoundStatus("completed");
         
         if (matchId > 0) {
-            System.out.println("💾 [DB] Đang lưu MatchDetail - Round: " + currentRound + ", MatchId: " + matchId);
-            matchDetailDAO.insert(detail);
-            System.out.println("💾 [DB] Đã lưu MatchDetail - Player1 word_ids: " + p1WordIds + ", Player2 word_ids: " + p2WordIds);
+            System.out.println("🔄 Đang cập nhật kết quả round: " + currentRound + ", MatchId: " + matchId);
+            matchDetailDAO.updateRoundResult(detail);
+            System.out.println("✅ Đã cập nhật MatchDetail với ended_at - Player1 word_ids: " + p1WordIds + ", Player2 word_ids: " + p2WordIds);
         } else {
-            System.err.println("❌ [ERROR] Không thể lưu MatchDetail vì matchId không hợp lệ: " + matchId);
+            System.err.println("Không thể lưu MatchDetail: " + matchId);
         }
 
-        // Gửi ROUND_END với danh sách từ đúng của mỗi người (gửi WORD|MEANING)
-        // Lấy words với meanings từ word_ids
+        // danh sách từ đúng của player để hiển thị khi round end 
         String p1WordsWithMeanings = getWordsWithMeanings(usedWordIdsByPlayer.get(player1Id));
         String p2WordsWithMeanings = getWordsWithMeanings(usedWordIdsByPlayer.get(player2Id));
         
-        // Gửi payload riêng cho mỗi client: winnerId:myCount:oppCount:myWordsWithMeanings:oppWordsWithMeanings
-        // Format của words: word1|meaning1,word2|meaning2,...
-        // Với player1: p1Count:p2Count:p1Words:p2Words
+        // Gửi kết quả người chơi: winnerId:myCount:oppCount:myWordsWithMeanings:oppWordsWithMeanings
         String payloadP1 = winnerId + ":" + p1Count + ":" + p2Count + ":" + p1WordsWithMeanings + ":" + p2WordsWithMeanings;
         sendToPlayer(player1Id, new Message(Protocol.ROUND_END, payloadP1));
         
@@ -233,8 +230,8 @@ public class Gameroom {
         String payloadP2 = winnerId + ":" + p2Count + ":" + p1Count + ":" + p2WordsWithMeanings + ":" + p1WordsWithMeanings;
         sendToPlayer(player2Id, new Message(Protocol.ROUND_END, payloadP2));
         
-        System.out.println("✅ Đã gửi ROUND_END cho round " + currentRound);
-        System.out.println("   RoundWins - P1: " + roundWins.get(player1Id) + ", P2: " + roundWins.get(player2Id));
+        System.out.println("ROUND_END cho round " + currentRound);
+        System.out.println("RoundWins - P1: " + roundWins.get(player1Id) + ", P2: " + roundWins.get(player2Id));
 
         // Reset counts
         correctWordsCount.put(player1Id, 0);
@@ -242,7 +239,7 @@ public class Gameroom {
 
         // Tăng currentRound
         currentRound++;
-        System.out.println("📈 Chuyển sang round: " + currentRound);
+        System.out.println("Chuyển sang round: " + currentRound);
 
         // Check thắng sớm: 1 người đạt 2 điểm và người kia 0 điểm
         int p1Wins = roundWins.get(player1Id);
@@ -255,7 +252,6 @@ public class Gameroom {
             // Còn round, tiếp tục - Chờ cả 2 người ready
             pendingRoundStart = true;
             readyPlayers.clear();
-            System.out.println("⏳ Chờ cả 2 người chơi sẵn sàng cho round " + currentRound);
             
             // Timeout 10 giây: nếu không cả 2 ready thì tự động bắt đầu
             timerExecutor.schedule(() -> {
@@ -267,18 +263,16 @@ public class Gameroom {
             }, 10, TimeUnit.SECONDS);
         } else {
             // Hết 3 round
-            System.out.println("🏁 Hết 3 round, kết thúc game.");
+            System.out.println("Hết 3 round, kết thúc game.");
             endGame();
         }
     }
 
+
+    // tính điểm kết thúc trận
     private void endGame() {
         int winnerId = -1;
         String result = "draw";
-        
-        // Tính điểm: thắng = 1 điểm, hòa = 1 điểm
-        int player1Points = roundWins.get(player1Id) + drawRounds;
-        int player2Points = roundWins.get(player2Id) + drawRounds;
         
         if (roundWins.get(player1Id) > roundWins.get(player2Id)) {
             winnerId = player1Id;
@@ -288,16 +282,12 @@ public class Gameroom {
             result = "player2_win";
         }
         // Nếu hòa (cùng số round thắng), winnerId = -1, result = "draw"
-        
-        System.out.println("💾 [DB] Đang update Matches result - matchId: " + matchId + ", winnerId: " + winnerId + ", result: " + result);
-        System.out.println("💾 [DB] Points - P1: " + player1Points + " (" + roundWins.get(player1Id) + " wins + " + drawRounds + " draws), P2: " + player2Points + " (" + roundWins.get(player2Id) + " wins + " + drawRounds + " draws)");
-        
-        // Lưu điểm số (player1Points, player2Points) và số trận hòa
+
+        // lưu thnog tin số round win và draw
         if (matchId > 0) {
-            matchesDAO.updateResult(matchId, winnerId, result, player1Points, player2Points, drawRounds);
-            System.out.println("💾 [DB] Đã update Matches - status: completed, P1 points: " + player1Points + ", P2 points: " + player2Points + ", draws: " + drawRounds);
+            matchesDAO.updateResult(matchId, winnerId, result, roundWins.get(player1Id), roundWins.get(player2Id), drawRounds);
         } else {
-            System.err.println("❌ [ERROR] Không thể update match vì matchId không hợp lệ: " + matchId);
+            System.err.println("Không thể update match: " + matchId);
         }
 
         // Gửi GAME_END
@@ -321,18 +311,16 @@ public class Gameroom {
         
         userDAO.updateUserStats(player1Id, p1Result);
         userDAO.updateUserStats(player2Id, p2Result);
-        System.out.println("📊 Đã cập nhật stats - P1: " + p1Result + ", P2: " + p2Result);
+   
         
         // Update trạng thái người chơi về 'online'
         Users user1 = userDAO.getUserById(player1Id);
         Users user2 = userDAO.getUserById(player2Id);
         if (user1 != null) {
             userDAO.updateUserStatus(user1.getUsername(), "online");
-            System.out.println("✅ Đã update status 'online' cho user " + player1Id + " (" + user1.getUsername() + ")");
         }
         if (user2 != null) {
             userDAO.updateUserStatus(user2.getUsername(), "online");
-            System.out.println("✅ Đã update status 'online' cho user " + player2Id + " (" + user2.getUsername() + ")");
         }
 
         gameEnded = true; // Đánh dấu game đã kết thúc
@@ -352,44 +340,24 @@ public class Gameroom {
     // Xử lý khi người chơi sẵn sàng cho round tiếp theo
     public void playerReady(int playerId) {
         if (gameEnded) {
-            System.out.println("⚠️ Game đã kết thúc, bỏ qua playerReady");
             return;
         }
         
         if (!pendingRoundStart) {
-            System.out.println("⚠️ Player " + playerId + " ready nhưng không đang chờ round mới");
             return;
         }
         
         readyPlayers.add(playerId);
-        System.out.println("✅ Player " + playerId + " đã ready (" + readyPlayers.size() + "/2)");
+        
         
         // Nếu cả 2 đã ready, bắt đầu round ngay
-        if (readyPlayers.size() >= 2) {
-            System.out.println("🚀 Cả 2 người chơi ready! Bắt đầu round " + currentRound);
+        if (readyPlayers.size() == 2) {
             pendingRoundStart = false;
             startRound();
         }
     }
     
-    // Helper: Chuyển Set<Integer> word_ids sang String words (phân cách bằng dấu phẩy)
-    private String getWordsFromIds(Set<Integer> wordIds) {
-        if (wordIds == null || wordIds.isEmpty()) {
-            return "";
-        }
-        
-        List<String> words = new ArrayList<>();
-        for (Integer wordId : wordIds) {
-            // Lấy word từ word_id
-            String wordIdsStr = String.valueOf(wordId);
-            List<Dictionary> dictionaries = dictionaryDAO.findDictionaryFromListDicId(wordIdsStr);
-            if (!dictionaries.isEmpty()) {
-                words.add(dictionaries.get(0).getWord());
-            }
-        }
-        
-        return String.join(",", words);
-    }
+
     
     private String getWordsWithMeanings(Set<Integer> wordIds) {
         if (wordIds == null || wordIds.isEmpty()) {
@@ -403,7 +371,6 @@ public class Gameroom {
             List<Dictionary> dictionaries = dictionaryDAO.findDictionaryFromListDicId(wordIdsStr);
             if (!dictionaries.isEmpty()) {
                 Dictionary dict = dictionaries.get(0);
-                // Format: word|meaning
                 wordMeaningPairs.add(dict.getWord() + "|" + dict.getMeaning());
             }
         }
@@ -433,34 +400,26 @@ public class Gameroom {
     
     // Xử lý khi người chơi forfeit (đầu hàng/thoát trận)
     public void handleForfeit(int forfeiterId) {
-        System.out.println("🏳️ [Gameroom] Player " + forfeiterId + " đã forfeit!");
-        
         // Đánh dấu game đã kết thúc ngay lập tức
         gameEnded = true;
         
         // DỬNG TẤT CẢ TIMER NGAY LẬP TỨC
         if (timerExecutor != null && !timerExecutor.isShutdown()) {
             timerExecutor.shutdownNow();
-            System.out.println("⏹️ Đã dừng tất cả timer");
         }
-        
+ 
         // Xác định người thắng (người còn lại)
         int winnerId = (forfeiterId == player1Id) ? player2Id : player1Id;
         String result = (winnerId == player1Id) ? "player1_win" : "player2_win";
-        
-        System.out.println("   → Người thắng: " + winnerId + ", Result: " + result);
         
         // Forfeit = tự động thua 0-3, người thắng được 3 rounds, draw = 0
         int p1Wins = (winnerId == player1Id) ? 3 : 0;
         int p2Wins = (winnerId == player2Id) ? 3 : 0;
         int draws = 0;
         
-        System.out.println("   → Tỉ số forfeit: P1=" + p1Wins + ", P2=" + p2Wins + ", Draw=" + draws);
-        
         // Lưu vào database
         if (matchId > 0) {
             matchesDAO.updateResult(matchId, winnerId, result, p1Wins, p2Wins, draws);
-            System.out.println("💾 [DB] Đã cập nhật match result - Forfeit 3-0");
             
             // Cập nhật stats cho người chơi
             String p1Result = (winnerId == player1Id) ? "win" : "lose";
@@ -468,7 +427,6 @@ public class Gameroom {
             
             userDAO.updateUserStats(player1Id, p1Result);
             userDAO.updateUserStats(player2Id, p2Result);
-            System.out.println("📊 Đã cập nhật stats - Forfeit: P1=" + p1Result + ", P2=" + p2Result);
         }
         
         // Cập nhật trạng thái người chơi về online
@@ -496,20 +454,15 @@ public class Gameroom {
         Server.getGamerooms().remove(matchId);
         System.out.println("🗑️ Đã xóa gameroom với matchId: " + matchId);
     }
-    
-    /**
-     * Broadcast emote from sender to opponent
-     */
+
     public void broadcastEmote(int senderId, String iconFileName) {
-        System.out.println("😊 [Gameroom] Broadcasting emote '" + iconFileName + "' from player " + senderId);
         
-        // Determine opponent ID
+        // xd id đối thủ
         int opponentId = (senderId == player1Id) ? player2Id : player1Id;
         
-        // Send emote to opponent
+        // gửi emote
         sendToPlayer(opponentId, new Message(Protocol.RECEIVE_EMOTE, iconFileName));
         
-        System.out.println("📤 Sent emote to player " + opponentId);
     }
 }
 

@@ -284,6 +284,7 @@ public class UserDAO {
                     if (st != null) match.setStartedAt(st.toLocalDateTime());
                     Timestamp et = rs.getTimestamp("ended_at");
                     if (et != null) match.setEndedAt(et.toLocalDateTime());
+                    match.setDraw(rs.getInt("draw"));
                     results.add(match);
                 }
             }
