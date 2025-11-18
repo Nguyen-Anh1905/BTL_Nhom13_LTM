@@ -6,12 +6,14 @@ import Server.model.Matches;
 import Server.model.Users;
 
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MatchHistoryService {
 
 	private UserDAO userDAO = new UserDAO();
+	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	// Trả về danh sách MatchHistoryResponse cho username được truyền vào
 	public List<MatchHistoryResponse> getMatchHistoryForUser(String username) {
@@ -48,9 +50,9 @@ public class MatchHistoryService {
 			int oppPoints = oppRounds + drawCount;
 			r.setMatchScore(userPoints + " - " + oppPoints);
 
-			// Thời gian bắt đầu
+			// Thời gian bắt đầu - format trực tiếp không thay đổi timezone
 			if (m.getStartedAt() != null) {
-				r.setMatchStart(m.getStartedAt().toString().replace("T", " "));
+				r.setMatchStart(m.getStartedAt().format(DATETIME_FORMATTER));
 			} else {
 				r.setMatchStart("");
 			}
