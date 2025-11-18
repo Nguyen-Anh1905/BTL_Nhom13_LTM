@@ -7,6 +7,7 @@
 !src/**
 !database_final.sql
 !vtv_final1.sql
+!db_vtv_final.sql
 !mo_ta.txt
 !server.config.example
 
