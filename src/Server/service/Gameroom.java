@@ -108,7 +108,6 @@ public class Gameroom {
             detail.setPlayer2Dic("");
             detail.setRoundStatus("playing");
             matchDetailDAO.insert(detail);
-            System.out.println("✅ Inserted match_detail for round " + currentRound + " with started_at");
         }
         
         // Gửi ROUND_START đến cả hai client
@@ -149,13 +148,12 @@ public class Gameroom {
             // Lấy meaning từ DB
             meaning = dictionaryDAO.getMeaningByWord(wordLower);
             if (meaning == null) meaning = "";
-            
-            System.out.println("✅ Player " + playerId + " - Từ đúng: " + wordLower + " (ID: " + wordId + ", " + meaning + ")");
+
         } else {
             if (wordId == null || !currentDictionary.contains(wordLower)) {
-                System.out.println("❌ Player " + playerId + " - Từ không hợp lệ: " + wordLower);
+                System.out.println("Player " + playerId + " - Từ không hợp lệ: " + wordLower);
             } else {
-                System.out.println("❌ Player " + playerId + " - Từ đã dùng: " + wordLower + " (ID: " + wordId + ")");
+                System.out.println("Player " + playerId + " - Từ đã dùng: " + wordLower + " (ID: " + wordId + ")");
             }
         }
         
@@ -167,7 +165,7 @@ public class Gameroom {
 
     private void endRound() {
         if (gameEnded) {
-            System.out.println("⚠️ Game đã kết thúc, bỏ qua endRound");
+            System.out.println("Game đã kết thúc, bỏ qua endRound");
             return;
         }
         
@@ -199,21 +197,17 @@ public class Gameroom {
                 .map(String::valueOf)
                 .collect(java.util.stream.Collectors.joining(","));
         detail.setPlayer1Dic(p1WordIds);
-        System.out.println("🔍 Debug - Player1Id: " + player1Id + ", WordIds: " + p1WordIds);
         
         // Lưu word_id của player2 (dạng "1,2,3")
         String p2WordIds = usedWordIdsByPlayer.get(player2Id).stream()
                 .map(String::valueOf)
                 .collect(java.util.stream.Collectors.joining(","));
         detail.setPlayer2Dic(p2WordIds);
-        System.out.println("🔍 Debug - Player2Id: " + player2Id + ", WordIds: " + p2WordIds);
         
         detail.setRoundStatus("completed");
         
         if (matchId > 0) {
-            System.out.println("🔄 Đang cập nhật kết quả round: " + currentRound + ", MatchId: " + matchId);
             matchDetailDAO.updateRoundResult(detail);
-            System.out.println("✅ Đã cập nhật MatchDetail với ended_at - Player1 word_ids: " + p1WordIds + ", Player2 word_ids: " + p2WordIds);
         } else {
             System.err.println("Không thể lưu MatchDetail: " + matchId);
         }
@@ -246,7 +240,7 @@ public class Gameroom {
         int p2Wins = roundWins.get(player2Id);
         
         if ((p1Wins == 2 && p2Wins == 0) || (p2Wins == 2 && p1Wins == 0)) {
-            System.out.println("🏆 Thắng sớm 2-0! Kết thúc game.");
+            System.out.println("Thắng sớm 2-0! Kết thúc game.");
             endGame();
         } else if (currentRound <= 3) {
             // Còn round, tiếp tục - Chờ cả 2 người ready
@@ -256,7 +250,7 @@ public class Gameroom {
             // Timeout 10 giây: nếu không cả 2 ready thì tự động bắt đầu
             timerExecutor.schedule(() -> {
                 if (pendingRoundStart && currentRound <= 3) {
-                    System.out.println("⏰ Timeout! Bắt đầu round " + currentRound + " dù chưa đủ người ready");
+                    System.out.println("Timeout! Bắt đầu round " + currentRound + " dù chưa đủ người ready");
                     pendingRoundStart = false;
                     startRound();
                 }
